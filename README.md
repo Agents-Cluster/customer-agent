@@ -1,6 +1,10 @@
 # customer-agent
 
-基于 **LangGraph + RAG** 的客服智能体系统，支持产品手册等非结构化文档的导入向量化与多轮问答。
+基于 **LangGraph + RAG（检索增强生成）** 的智能客服系统（customer service agent / chatbot），支持产品手册等非结构化 PDF 文档的导入向量化与多轮问答。
+
+核心能力：PDF 文档解析（MinerU）→ BGE-M3 向量嵌入 → Milvus 向量检索 + Neo4j 知识图谱混合检索 → RRF 融合 → BGE 重排序 → LLM 流式回答（SSE）。
+
+> RAG · Retrieval-Augmented Generation · LangGraph Workflow · Vector Search · Knowledge Graph · Hybrid Retrieval · Reranking · FastAPI · Streaming Chatbot
 
 ## 架构
 
