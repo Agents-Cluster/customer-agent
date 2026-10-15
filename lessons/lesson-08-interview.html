@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 08 面试实战：10 分钟讲项目</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--bg)}
+  td{font-size:13.5px}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 08</div>
+  <h1>面试实战：10 分钟讲项目</h1>
+  <div class="sub">项目讲解脚本 · 高频追问 30 秒话术 · 综合复习</div>
+  <div class="tags"><span class="tag">综合课</span><span class="tag">预计 90 分钟</span><span class="tag">含 12 道综合 quiz</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">综合 quiz</a><a href="#script">10 分钟讲解脚本</a><a href="#qa">高频追问话术</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>怎么用 10 分钟把掌柜智库讲得让面试官听懂且记住？</li><li>最常见的追问怎么用 30 秒答好？</li><li>怎么把「前端经验」和这个后端/Agent 项目串成自己的故事？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>脚本练习 30 分钟 · 追问演练 30 分钟 · 综合 quiz 20 分钟 · 复盘 10 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能不看材料，用 10 分钟讲完项目（背景→链路→技术→难点→亮点）</li>
+      <li>对 8 个高频追问有 30 秒话术</li>
+      <li>综合 quiz 正确率 ≥ 80%，错题进入错题本</li>
+      <li>能讲出「前端视角下我为什么做/能做好 Agent 后端」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 综合复习 quiz（12 道，跨全部课程）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">不按课程顺序出题，模拟面试考察综合掌握度。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="script">
+  <h2>3. 10 分钟项目讲解脚本（背熟，练习时掐表）</h2>
+  <div class="card">
+    <table>
+      <tr><th style="width:12%">时段</th><th style="width:18%">内容</th><th>要点</th></tr>
+      <tr><td>0-1 分钟</td><td>一句话定位</td><td>「我做过一个企业级私有知识库问答系统（RAG），约 5500 行工程化代码，用于让企业员工基于内部文档获得可溯源的智能问答。」</td></tr>
+      <tr><td>1-3 分钟</td><td>业务问题</td><td>「员工查设备说明书要翻 PDF、问售后，效率低；通用大模型不知道企业私有文档，还会编造答案。我做的系统把文档变成可检索的知识库，回答可溯源。」</td></tr>
+      <tr><td>3-5 分钟</td><td>整体架构</td><td>「两条链路：导入链路把 PDF/MD 切片、识别商品名、BGE-M3 双向量化、存 Milvus；检索链路做意图确认、四路召回、RRF 融合、Rerank 精排、流式生成答案。中间靠向量库衔接。」</td></tr>
+      <tr><td>5-7 分钟</td><td>技术难点 1</td><td>「多路召回怎么融合：我实现加权 RRF，按排名倒数累加、chunk_id 去重；再用 BGE-reranker 模型精读打分，动态 TopK 按分数断崖截断，避免低分文档混进答案。」</td></tr>
+      <tr><td>7-8 分钟</td><td>技术难点 2</td><td>「实时流式体验：用 FastAPI + SSE，按 session_id 队列推送增量，前端 EventSource 逐字渲染；图片用代码从源文档正则提取，不信任 LLM 输出。」</td></tr>
+      <tr><td>8-9 分钟</td><td>工程化</td><td>「LangGraph 编排、TypedDict 状态管理、条件路由；导入幂等（先删后插）；每个节点独立可测；配置全部 .env 化。」</td></tr>
+      <tr><td>9-10 分钟</td><td>收尾 + 卖点</td><td>「我最熟的是把『用户体验』思维带到后端：意图确认就是前端路由守卫的翻版，多轮改写就是上下文管理；前端出身让我特别关注流式渲染、状态隔离这类体验细节。」</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="qa">
+  <h2>4. 高频追问 30 秒话术</h2>
+  <div class="card">
+    <table>
+      <tr><th style="width:24%">追问</th><th>30 秒话术</th></tr>
+      <tr><td>为什么用 RAG 不用微调？</td><td>「微调要大量标注数据、成本高、更新知识要重新训练；RAG 把知识外置到向量库，更新文档只需重新导入，且回答可溯源，幻觉可控。企业文档高频变动场景 RAG 更合适。」</td></tr>
+      <tr><td>为什么四路召回？</td><td>「单路召回有盲区：向量路做语义、HyDE 弥合口语与书面差距、Web 路补实时信息、图谱路补实体关系。四路并行，总耗时≈最慢一路，召回覆盖率明显提升。」</td></tr>
+      <tr><td>RRF 和 Rerank 区别？</td><td>「RRF 只看排名做轻量融合去重，公式 score += w/(k+rank)，无需训练；Rerank 是模型逐对精读『问题×文档』打分，理解内容。先 RRF 粗排到 Top10，再 Rerank 精排，成本可控。」</td></tr>
+      <tr><td>动态 TopK 是什么？</td><td>「不固定取 N 条，按 Rerank 分数找断崖：绝对落差≥0.5 或相对落差≥25% 就截断，最多 10 条至少 1 条，避免低分垃圾文档进 Prompt。」</td></tr>
+      <tr><td>怎么保证答案可信？</td><td>「三重：导入打标（item_name）限定范围；检索按已确认商品过滤；Prompt 带溯源标签并要求基于参考内容作答、禁止编造；图片从源文档提取保证真实。」</td></tr>
+      <tr><td>多轮对话怎么处理？</td><td>「MongoDB 存历史；意图确认节点读最近历史，用 LLM 提取商品名并改写成独立完整问题；改写失败回退原始问题。」</td></tr>
+      <tr><td>并发/性能怎么考虑？</td><td>「状态按 session_id 隔离，LangGraph 每请求独立 state；四路召回并行；Rerank 前先 RRF 截到 Top10 控制算力；向量化在导入期离线完成，查询期只有检索+精排。」</td></tr>
+      <tr><td>前端经验对你做这个项目的价值？</td><td>「我天然关注用户体验：SSE 流式渲染、多会话状态隔离、错误降级提示；也熟悉请求-响应模型，能快速理解后端链路设计。前端转后端，我两边语言都懂，协作效率高。」</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="tasks">
+  <h2>5. 课后任务</h2>
+  <div class="card"><h3 style="margin-top:0;color:var(--acc)">实战演练：模拟面试</h3>
+    <ul style="margin:6px 0;padding-left:20px">
+      <li style="font-size:14px;margin:5px 0"><b>输入</b>：本课件脚本 + 话术表 + 错题本</li>
+      <li style="font-size:14px;margin:5px 0"><b>操作</b>：① 录音讲 10 分钟项目，掐表回放，找出卡壳/超时点；② 随机抽 3 个追问，30 秒作答并录音；③ 重讲一遍直到流畅</li>
+      <li style="font-size:14px;margin:5px 0"><b>预期结果</b>：10 分钟不超时、每个追问 30 秒内答完、逻辑闭环</li>
+      <li style="font-size:14px;margin:5px 0"><b>失败先查</b>：卡壳处往往是对「边界/反例」不熟 —— 回到对应 Lesson 的概念「反例」与「边界」小节</li>
+    </ul>
+  </div>
+  <div class="card"><h3 style="margin-top:0;color:var(--acc)">闭卷自检（3-5 题）</h3>
+    <ol style="margin:6px 0;padding-left:20px">
+      <li style="font-size:14px;margin:5px 0">说出导入 7 节点与检索 8 节点（含虚拟节点）的完整顺序。</li>
+      <li style="font-size:14px;margin:5px 0">说出 RRF 公式、k 值、动态 TopK 两个阈值。</li>
+      <li style="font-size:14px;margin:5px 0">说出 SSE 5 种事件与答案节点 5 阶段。</li>
+      <li style="font-size:14px;margin:5px 0">说出意图确认评分阈值与规则 A-D。</li>
+    </ol>
+  </div>
+  <div class="card"><h3 style="margin-top:0;color:var(--acc)">口述复盘</h3>
+    <p style="font-size:14px;margin:6px 0">录一段 2 分钟「项目 30 秒电梯陈述」：定位 → 两条链路 → 两个难点 → 前端优势。反复听到自然为止。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>6. 通过标准</h2>
+  <div class="card" style="background:var(--ok-soft);border-color:var(--ok)"><h3 style="margin:0 0 8px;color:var(--ok)">通过标准</h3>
+    <ul style="margin:6px 0;padding-left:20px">
+      <li style="font-size:14px;margin:4px 0">综合 quiz 正确率 ≥ 80%，错题全部进入错题本（题目 ID、错误原因、正确原理、下次复习日期）</li>
+      <li style="font-size:14px;margin:4px 0">10 分钟讲解脱稿、不超时、结构完整</li>
+      <li style="font-size:14px;margin:4px 0">8 个高频追问每个都能 30 秒答完</li>
+      <li style="font-size:14px;margin:4px 0">能说出至少一个「不适用场景」（如：实时性极高/完全私密数据/文档超大量场景的取舍）</li>
+      <li style="font-size:14px;margin:4px 0">7 天后再来一次：重新讲 10 分钟项目 + 新增一个接口/节点练习</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：全部 21 份笔记 + 已核实项目代码。本课为综合复习与面试包装课，话术基于真实项目事实提炼，[面试简化] 部分请以真实理解为准。</footer>
+
+</div>
+<script>
+const quizData=[
+{no:1,q:"掌柜智库双链路之间用什么衔接？",opts:["MongoDB","MinIO","SSE 通道","Milvus 向量库"],ans:3,exp:"导入写向量进 Milvus，检索从 Milvus 召回，Milvus 是双链路衔接点。"},
+{no:2,q:"LangGraph 里虚拟节点 node_join 的作用？",opts:["执行检索","多路结果汇合点，不更新状态","做排序","生成答案"],ans:1,exp:"lambda x:{} 返回空字典，只汇合不修改状态。"},
+{no:3,q:"BGE-M3 双向量中稠密向量的维度是？",opts:["256","512","2048","1024"],ans:3,exp:"稠密 1024 维固定长度记语义；稀疏为变长键值对记关键词。"},
+{no:4,q:"Milvus 入库幂等的实现是？",opts:["upsert","时间戳去重","清空全表","先按 item_name 删旧再插入"],ans:3,exp:"先删后插，重导即更新，避免重复切片污染。"},
+{no:5,q:"意图确认评分 >0.85 且唯一时走哪个规则？",opts:["规则A 确认","规则B 同名优先","规则C 候选反问","规则D 拒绝"],ans:0,exp:"唯一高置信直接确认；多高置信 B、中置信 C 反问、低分 D 拒绝。"},
+{no:6,q:"HyDE 的核心思路是？",opts:["用原词检索","只检索标题","先让 LLM 生成假设答案再向量化检索","翻译后检索"],ans:2,exp:"假设答案与文档表示更接近，弥合口语与书面语差距，提升召回。"},
+{no:7,q:"RRF 核心公式是？",opts:["w*1/(k+rank)","w*rank/k","k/(rank+w)","1/(k*rank)"],ans:0,exp:"score += weight * (1.0/(k+rank))，rank 从 1 开始，k=60。"},
+{no:8,q:"动态 TopK 断崖截断的条件是？",opts:["绝对≥0.5 或 相对≥25%","绝对≥0.25 或 相对≥50%","分数<0.6","前5名固定"],ans:0,exp:"RERANK_GAP_ABS=0.5、RERANK_GAP_RATIO=0.25，任一触发截断。"},
+{no:9,q:"SSE 中推送 LLM 逐字增量的事件是？",opts:["ready","progress","final","delta"],ans:3,exp:"delta 是流式增量；final 携带最终答案和图片 URL。"},
+{no:10,q:"答案节点最终展示的图片 URL 来自？",opts:["LLM 生成的区块","代码从源文档正则提取的真实 URL","用户上传","前端缓存"],ans:1,exp:"双保险：LLM 只引导文字提到图，最终 URL 由代码从源文档提取，保证真实。"},
+{no:11,q:"写 MongoDB 历史失败时项目怎么处理？",opts:["捕获记日志不中断","抛异常","重试三次","回滚"],ans:0,exp:"非关键路径降级：答案已生成，记账失败不影响主链路。"},
+{no:12,q:"RAG 相比微调的核心优势是？",opts:["不需要 GPU","模型更大","训练更快","知识外置、更新只需重新导入、回答可溯源"],ans:3,exp:"微调成本高且知识更新要重训；RAG 知识外置到向量库，改文档=重导入，可溯源、幻觉可控。"}
+];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

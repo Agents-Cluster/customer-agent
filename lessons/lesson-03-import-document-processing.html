@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 03 导入链路：文档处理与切片</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 03</div>
+  <h1>导入链路：文档处理与切片</h1>
+  <div class="sub">node_entry → node_pdf_to_md → node_md_img → node_document_split</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 80 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>一份 PDF 文档是如何变成「能被检索的小块文本 + 可展示的图片」的？</li><li>为什么要把「转 MD、提图片、切片」拆成三个独立节点？</li><li>入口节点如何做参数校验和类型路由？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 30 分钟 · 代码走读 25 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能说出入口节点做的三件事（校验、类型判断、file_title 提取）</li>
+      <li>能解释 PDF→MD 为什么要用专业的解析器（MinerU），而不是简单读文本</li>
+      <li>能说明图片为什么要单独处理并传到 MinIO（前端可访问）</li>
+      <li>能说出切片的三个维度：为什么切、怎么切（多种策略）、切多大合适</li>
+      <li>能 30 秒回答「文档导入是怎么一步步处理的」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道旧课复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">覆盖 Lesson 1-2 与本节课主题。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · node_entry：入口节点的「校验 + 路由」</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">入口节点负责参数校验、按文件后缀设置解析开关、提取业务标识（file_title），本身不解析内容。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">就像快递站收件员：先检查包裹地址（local_file_path 非空）、看是文件还是生鲜（PDF/MD/其他）、贴个标签（file_title），然后交给对应的分拣线。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">类似路由入口的守卫函数：校验 query 参数、判断来源、设置默认值，然后 next() 到对应页面。也像 axios 请求拦截器先校验配置再发请求。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_entry.py</span>：add_running_task 记录开始；state.get("local_file_path") 校验；endswith 判断 .pdf/.md；os.path.basename + splitext 提取 file_title。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>document_path = state.get("local_file_path", "")
+if not document_path:
+    logger.error("未配置 local_file_path，文件路径为空")
+    return state                      # 缺参：直接返回，流程后续走默认分支
+if document_path.endswith(".pdf"):
+    state["is_pdf_read_enabled"] = True
+    state["pdf_path"] = document_path
+elif document_path.endswith(".md"):
+    state["is_md_read_enabled"] = True
+    state["md_path"] = document_path
+file_name = os.path.basename(document_path)
+state["file_title"] = splitext(file_name)[0]   # "万用表RS-12的使用.pdf" → "万用表RS-12的使用"</code></pre>为什么这样写：把「判断」留在入口、把「干活」交给后续节点，职责单一；开关字段驱动条件路由。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不做校验直接往下传空路径：后续节点打开不存在的文件直接抛异常，错误堆栈又深又难定位；入口校验能最早暴露问题。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">同时导入 PDF 和 MD：两个 state 各自开关不同，路由函数各走各的分支，互不干扰。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">入口只认 .pdf/.md 后缀：传一个 .txt 时两个开关都为 False，路由返回 END 静默结束 —— 项目靠日志 warning 提示「不支持的格式」。真机上带扩展名大小写（.PDF）会识别失败。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">运行 `python -m app.import_process.agent.nodes.node_entry`，观察 TXT/MD/PDF 三种测试的日志分支走向。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「导入链路的入口节点做三件事：校验文件路径非空、按后缀把 PDF/MD 路由到不同处理线、提取 file_title 作为业务标识。判断逻辑和业务逻辑分离，后续节点职责单一。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · node_pdf_to_md：PDF 转 Markdown</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">PDF 是排版文档，先用专业解析器（MinerU）转成结构化 Markdown，才能被后续切片和向量化处理。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">PDF 像一张「照片」，文字和排版糊在一起，机器直接读容易乱；Markdown 像「源代码」，标题、表格、段落结构清清楚楚。先转格式再加工。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">类似把 Figma 设计稿导出成 HTML/CSS：设计稿（PDF）是给人看的，导出结构（MD）是给机器用的。或像 pdf2htmlEX / pandoc 这类格式转换工具。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_pdf_to_md.py</span>，解析器配置在 <span class="path">app/conf/mineru_config.py</span>。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 伪代码（项目实际用 MinerU 服务）
+result = mineru_parse(pdf_path)        # 调用 PDF 解析服务
+md_content = result.get("markdown")    # 得到结构化 Markdown
+state["md_content"] = md_content
+state["md_path"] = output_md_path      # 落盘，供下一节点使用</code></pre>为什么这样写：专业解析器能识别标题层级、表格、公式，切片时才能按语义切而不是按字符硬切。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">直接用 pypdf 抽取纯文本：表格散架、标题层级丢失，切片切出「半句话」，向量检索质量断崖式下降。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a、b 两个 PDF 同时转 MD：解析服务要支持并发或排队，否则会成为导入瓶颈（每个 PDF 可能耗时几十秒到几分钟）。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">扫描版 PDF（纯图片无文字层）MinerU 也未必能直接转好，通常需要 OCR 环节 —— 项目若遇到扫描件，质量可能不达标，属于已知边界。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">导入一个带标题和表格的 PDF，打开生成的 md_path 文件，检查标题层级和表格是否被正确保留。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「PDF 是排版文档，直接抽文本会丢失标题、表格等结构信息，我用 MinerU 这类专业解析器转成 Markdown，保留语义结构，为后续语义切片打好基础。这是导入链路质量的第一道关口。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · node_md_img：图片提取与路径修复</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">把 Markdown 里的图片提取出来上传到 MinIO，并把文档里的图片路径替换为可访问的 URL，保证前端能展示。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">Markdown 里的图片链接常常指向本地文件（比如 `![图1](images/1.png)`），这些路径只有服务器自己认识。图片节点把图片搬到公共网盘（MinIO），再把链接改成网盘地址，这样前端浏览器也能看到图。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端把本地图片上传到 CDN 再引用 CDN 地址，而不是引用 `C:/Users/xxx/1.png`；也像 webpack 的 asset 处理 —— 小图转 base64 / 大图输出到 public 目录并改写引用路径。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_md_img.py</span>；MinIO 配置在 <span class="path">app/conf/minio_config.py</span>；最终答案节点用正则 `_extract_images_from_docs` 从切片文本中提取图片 URL 展示给用户。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>import re
+pattern = re.compile(r'!\[.*?\]\((.*?)\)')   # 匹配 Markdown 图片语法
+matches = pattern.findall(md_content)        # 找出所有图片路径
+for m in matches:
+    url = minio_upload(m)                    # 上传 MinIO，返回公网 URL
+    md_content = md_content.replace(m, url)  # 替换路径为 URL</code></pre>为什么这样写：图片和文本解耦 —— 文本进向量库，图片进对象存储，检索回答时再按需提取图片 URL。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不处理图片直接向量化：模型向量化的是「图片路径字符串」而非图片内容，回答时前端也加载不了本地路径的图，功能直接缺失。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">多个文档含大量图片同时导入：MinIO 上传是网络 IO，可能成为瓶颈；通常按文件粒度并发，一个文件内部串行上传。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">只处理标准 Markdown 图片语法 `![alt](url)`；HTML `<img>` 或其他写法可能漏处理。提取时需防重复（用 seen 集合去重）。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">导入一个含图片的 MD，检查 MinIO 桶里是否多出对应对象、md 文件里的路径是否变成 URL。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「图片节点解决一个实际问题：Markdown 里的图片路径是服务器本地路径，前端访问不了。我把图片提取上传到 MinIO，把路径替换成公网 URL。这样检索回答时能通过正则从文档里提取图片 URL 直接展示给用户，形成图文答案。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · node_document_split：文档切片（为什么切 / 怎么切）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">长文档必须切成小片段才能向量化、检索和放入 Prompt，切片质量直接决定 RAG 检索效果。 <span class="badge b-gen">[通用知识]</span> <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">向量模型和 LLM 都有长度限制（Token 上限），而且检索时「一整本书」没法回答「某一页的问题」。切片就是把书拆成「知识点卡片」，每张卡片自带上下文。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像把一个巨型组件拆成多个可复用的小组件；也像虚拟列表只渲染可视区域。切片大小类似「组件粒度」：太大复用难、太小碎片多。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_document_split.py</span>；ImportGraphState 里有一组切片策略开关：is_normal_split_enabled、is_silicon_flow_api_enabled、is_advanced_split_enabled、is_vllm_enabled。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 策略选择示意（项目支持多种切片引擎，通过开关路由）
+chunks = []
+if state.get("is_normal_split_enabled"):
+    chunks = normal_split(md_content)          # 基础按段落/字符切
+if state.get("is_silicon_flow_api_enabled"):
+    chunks = silicon_flow_api_split(md_content)  # 云端 API 语义切
+if state.get("is_advanced_split_enabled"):
+    chunks = advanced_split(md_content)        # 高级语义切分
+state["chunks"] = chunks   # 每块含 text + metadata（如标题、页码）</code></pre>为什么这样写：不同文档适合不同切法，把策略做成开关，业务可按需启用，不影响链路骨架。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不切片整篇向量化：① 超出模型长度直接报错；② 检索命中整个文档，Prompt 撑爆上下文；③ 相似度被长文本稀释，相关性下降。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">切片是纯计算/API 调用，可按文档并行；同一个文档内的切片顺序要保持（metadata 里带索引），便于后续按序组装上下文。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">切片不是越小越好：过小会切断语义（一句话被劈两半），过大又稀释相关性。同时 chunk 应尽量「自带上下文」（如保留小标题），否则检索到一块孤立的「50℃」不知道在说什么。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">导入长文档后，打印 chunks 数量和每块长度；抽查一块是否完整包含一个语义单元（如一个操作步骤）。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「文档切片是 RAG 的基石。受限于模型长度和检索精度，我把长文档切成带上下文的语义片段，每个片段包含文本和元数据。项目支持基础切分、云端 API 语义切分、高级切分多种策略，通过状态开关选择，切片质量直接影响后续检索和生成质量。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>node_entry 里 `.pdf` 后缀判断失败会怎样？哪个字段决定后续分支？</li>
+      <li>PDF 直接抽文本相比用 MinerU 转 MD，丢失了什么？</li>
+      <li>图片节点解决了什么「前端视角」的问题？</li>
+      <li>切片太大会有什么后果？太小呢？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：验证一次真实导入</h3>
+    <ul>
+      <li><b>输入</b>：一个测试 PDF 或 MD（可用 doc/ 下现成文档）</li>
+      <li><b>操作</b>：① 看 node_entry.py 单元测试怎么构造 state；② 照样子构造初始 state（task_id、local_file_path）invoke 导入主图；③ 打印中间状态里的 file_title、md_path、chunks 数量</li>
+      <li><b>预期结果</b>：日志显示完整的 7 节点链路走向，chunks 数量 > 0</li>
+      <li><b>失败先查</b>：若卡在 PDF 转 MD，先确认 MinerU 服务/配置（mineru_config.py）是否可用；若 chunks 为空，检查切片开关默认值</li>
+      <li><b>注意</b>：首次运行可能依赖环境变量，先确认 .env 齐全；不要导入大文件，用小 PDF 验证</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">用「收件员 → 格式转换 → 搬家到网盘 → 拆卡片」的比喻，讲一遍文档从 PDF 到可检索切片的完整旅程。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（复习题至少对 3 道）</li>
+      <li>能不看课件画出 node_entry → node_pdf_to_md → node_md_img → node_document_split 及各自产出</li>
+      <li>能解释为什么「转 MD」和「提图片」必须分开</li>
+      <li>能说出切片质量影响检索的因果链</li>
+      <li>能说出至少一个边界（如：扫描版 PDF 质量风险、扩展名大小写问题）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 05 导入节点 1-4 · 03 环境准备 · 06 Web服务集成；代码已对照 app/import_process/agent/nodes/node_entry.py 等核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】LangGraph 中虚拟节点 node_multi_search 的作用是？",opts:["执行向量检索","合并多路结果","做融合排序","分叉点让多路搜索并行"],ans:3,exp:"虚拟节点无业务逻辑，node_multi_search 是分叉点，node_join 是合并点。真正检索的是下游各搜索节点。"},{no:2,q:"【复习】TypedDict 状态类的主要价值是？",opts:["IDE 类型检查与自动补全","运行时强制校验","自动持久化","自动序列化"],ans:0,exp:"TypedDict 是类型约定，帮助开发期防错，运行时并不强制。"},{no:3,q:"node_entry 中 file_title 是如何得到的？",opts:["用户手动传入","os.path.basename + splitext 去后缀","从 PDF 元数据读取","从文件名去所有点号"],ans:1,exp:"file_name = os.path.basename(path)，splitext 去掉最后一个扩展名。如 '万用表RS-12的使用.pdf' → '万用表RS-12的使用'。"},{no:4,q:"PDF 转 MD 用专业解析器（MinerU）而不是直接抽文本，最核心的原因是？",opts:["运行更快","代码更简单","保留标题/表格等语义结构，切片才能按语义切","不需要安装额外库"],ans:2,exp:"结构信息决定切片质量。直接抽文本表格散架、标题层级丢失，语义切片无从谈起。"},{no:5,q:"node_md_img 把图片传到 MinIO 并改写路径，直接解决了？",opts:["图片体积过大","图片版权问题","向量化速度慢","前端无法访问本地路径图片"],ans:3,exp:"Markdown 里图片路径是服务器本地路径，前端访问不了；上传 MinIO 得到公网 URL 后前端可展示。"},{no:6,q:"长文档不切片直接向量化，可能发生？",opts:["以上都可能","超过模型长度限制报错","相关性被长文本稀释","Prompt 撑爆上下文"],ans:0,exp:"三个问题都真实存在：长度超限、长文本稀释相似度、检索整篇塞爆上下文。切片是必选项。"},{no:7,q:"【复习】检索主图四路并发搜索中，负责假设性文档增强的是？",opts:["node_search_embedding","node_search_embedding_hyde","node_web_search_mcp","node_query_kg"],ans:1,exp:"HyDE（Hypothetical Document Embeddings）即 node_search_embedding_hyde，先让 LLM 生成假设答案再检索。"},{no:8,q:"切片过小（如一句话被劈成两半）的主要问题是？",opts:["检索变快","向量化更贵","语义被切断，检索到孤立片段无法理解","不需要切片了"],ans:2,exp:"过小切片切断语义上下文，检索到的片段可能是一段没头没尾的文字，无法作为可靠答案依据。"},{no:9,q:"【复习】条件路由返回值不匹配已注册节点名会发生？",opts:["静默跳过","自动创建节点","走默认分支","LangGraph 报错找不到目标节点"],ans:3,exp:"返回值必须与注册节点名或 END 精确匹配，否则图执行直接报错。"},{no:10,q:"导入链路四个节点（entry/pdfs/md_img/document_split）的共同特征是？",opts:["每个节点职责单一，产出被下一个节点消费","都调用 LLM","都写数据库","都做网络请求"],ans:0,exp:"四个节点各自职责单一：校验路由、格式转换、图片搬家、切片。链路清晰，可插拔可替换。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

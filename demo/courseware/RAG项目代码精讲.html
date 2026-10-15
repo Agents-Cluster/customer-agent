@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG 智能客服系统 · 代码逻辑精讲</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>R</text></svg>">
+<style>
+:root {
+  --bg: #f8f9fb;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --accent-light: #e0e7ff;
+  --green: #059669;
+  --green-light: #d1fae5;
+  --orange: #d97706;
+  --orange-light: #fef3c7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --border: #e5e7eb;
+  --code-bg: #1e1e3f;
+  --code-text: #e0e0e0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+/* 导航 */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  padding: 12px 24px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  overflow-x: auto;
+}
+nav .logo { font-weight: 700; color: var(--accent); white-space: nowrap; }
+nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+nav a:hover, nav a.active { color: var(--accent); background: var(--accent-light); }
+
+/* 主体 */
+main { max-width: 960px; margin: 0 auto; padding: 80px 24px 60px; }
+
+/* 章节 */
+section { margin-bottom: 48px; }
+h1 { font-size: 28px; margin-bottom: 8px; }
+h2 {
+  font-size: 22px;
+  margin: 32px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+}
+h3 { font-size: 17px; margin: 20px 0 10px; }
+p { margin-bottom: 12px; }
+
+/* 卡片 */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card.highlight { border-left: 4px solid var(--accent); }
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 6px;
+  font-weight: 500;
+}
+.tag-conclusion { background: var(--accent-light); color: var(--accent); }
+.tag-analogy { background: var(--green-light); color: var(--green); }
+.tag-code { background: var(--orange-light); color: var(--orange); }
+.tag-interview { background: var(--red-light); color: var(--red); }
+
+/* 代码块 */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 12px 0;
+}
+code { font-family: "SF Mono", "Fira Code", Consolas, monospace; }
+p code, li code {
+  background: var(--accent-light);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+/* 表格 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+}
+th, td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: left;
+}
+th { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+/* 流程图 */
+.flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+}
+.flow-step {
+  background: var(--card);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 100px;
+}
+.flow-step.import { border-color: var(--green); }
+.flow-step.query { border-color: var(--orange); }
+.flow-arrow { color: var(--muted); font-size: 18px; }
+
+/* 两栏 */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .two-col { grid-template-columns: 1fr; }
+  nav { padding: 10px 16px; }
+  main { padding: 70px 16px 40px; }
+}
+
+/* 面试卡片 */
+.interview-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 12px 0;
+}
+.interview-card .q { font-weight: 600; color: #92400e; margin-bottom: 6px; }
+.interview-card .a { color: #78350f; font-size: 14px; }
+
+/* 概念块 */
+.concept-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 16px 0;
+}
+.concept-block .header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.concept-block .title { font-size: 17px; font-weight: 600; }
+
+ul, ol { padding-left: 24px; margin: 8px 0; }
+li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">RAG 项目精讲</span>
+  <a href="#arch">架构总览</a>
+  <a href="#import">导入链路</a>
+  <a href="#query">查询链路</a>
+  <a href="#recall">多路召回</a>
+  <a href="#rerank">Rerank</a>
+  <a href="#interview">面试速查</a>
+</nav>
+
+<main>
+
+<!-- ===== 封面 ===== -->
+<section>
+  <h1>RAG 智能客服系统 · 代码逻辑精讲</h1>
+  <p style="color: var(--muted);">面向前端工程师的后端/Agent 视角走读，每个概念都配前端类比和面试 30 秒回答</p>
+  <div class="card highlight">
+    <p><strong>一句话项目：</strong>用户用自然语言问产品问题 → 系统从私有 PDF/Word 文档库里精准检索证据 → LLM 生成可溯源答案。</p>
+    <p><strong>技术栈：</strong>Python + LangGraph + FastAPI + Milvus + MongoDB + MinIO + BGE-M3 + MinerU</p>
+  </div>
+</section>
+
+<!-- ===== 架构总览 ===== -->
+<section id="arch">
+  <h2>一、整体架构（两条链路）</h2>
+  <p>整个系统分<strong>离线导入</strong>和<strong>在线查询</strong>两条完全解耦的链路。</p>
+
+  <h3>离线导入链路（文档 → 可检索的知识）</h3>
+  <div class="flow">
+    <div class="flow-step import">PDF/Word 文档</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step import">MinerU 解析<br><small>结构化 Markdown</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step import">语义切片<br><small>章节边界 + overlap</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step import">BGE-M3 向量化<br><small>dense + sparse</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step import">Milvus 入库<br><small>向量 + 元数据</small></div>
+  </div>
+
+  <h3>在线查询链路（用户提问 → 精准答案）</h3>
+  <div class="flow">
+    <div class="flow-step query">用户提问</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step query">商品名确认<br><small>LLM 提取 + 对齐</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step query">多路并发召回<br><small>4 路并行</small></div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step query">RRF 融合</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step query">Rerank 精排</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step query">LLM 生成<br><small>SSE 流式</small></div>
+  </div>
+
+  <div class="card">
+    <p><span class="tag tag-analogy">前端类比</span> 导入链路就像<strong>打包构建</strong>：把源码（PDF）编译成可运行的产物（向量索引），离线跑一次。查询链路就像<strong>用户请求</strong>：实时处理，要求低延迟。</p>
+  </div>
+</section>
+
+<!-- ===== 导入链路 ===== -->
+<section id="import">
+  <h2>二、离线导入链路（代码走读）</h2>
+
+  <!-- 概念 1：MinerU 结构化解析 -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">2.1 MinerU 深度解析</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> PDF 本质是排版格式，直接抽文本会结构坍塌；MinerU 能把 PDF 还原成带标题层级、表格、公式的 Markdown。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像把一个设计稿（Figma/PDF）还原成带语义的 HTML——不是截一张图，而是识别出"这是 H1 标题""这是表格""这是列表"。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/import_process/agent/nodes/node_pdf_to_md.py</code></p>
+    <pre><code># 核心逻辑：调用 MinerU 把 PDF 转成结构化 Markdown
+from magic_pdf.pipe.UNIPipe import UNIPipe
+# 输出：带 # ## ### 标题层级的干净 Markdown
+# 后续切片就是基于这个 Markdown 的标题边界</code></pre>
+    <p><strong>反例：</strong>如果直接用 PyPDF2 抽文本，标题和正文混在一起，切片时不知道哪里是哪里，检索出来的证据上下文断裂。</p>
+  </div>
+
+  <!-- 概念 2：语义切片 -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">2.2 语义切片（Semantic Chunking）</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 按章节/段落边界切，不按固定字数切；每个 chunk 继承父级标题路径，15% overlap 保证上下文不丢。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像 React 组件的懒加载边界——不是随便从中间切断，而是在语义完整的边界（组件/章节）切。overlap 就像虚拟滚动的预加载，保证滚动时上下文连续。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/import_process/agent/nodes/node_document_split.py</code></p>
+    <pre><code># 切片策略：
+# 1. 按标题 (# / ## / ###) 维护标题栈，每个 chunk 记录 breadcrumb
+# 2. 超长 section 按句子二次切分
+# 3. chunk 之间保留 15% 重叠区域
+# 示例 breadcrumb: "RAG系统 / 多路召回引擎 / 混合向量检索"</code></pre>
+    <p><strong>为什么是 15%？</strong> 太小（5%）上下文断了，太大（30%）冗余重复。15% 是经验值。</p>
+  </div>
+
+  <!-- 概念 3：BGE-M3 向量化 -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">2.3 BGE-M3 双路向量</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 每个 chunk 一次输出两种向量：dense（语义向量）+ sparse（关键词向量），分别入库。</p>
+    <table>
+      <tr><th>向量类型</th><th>作用</th><th>前端类比</th></tr>
+      <tr><td><strong>Dense</strong></td><td>语义泛化，"懂意思"</td><td>像搜索的"你是不是想找…"联想</td></tr>
+      <tr><td><strong>Sparse</strong></td><td>精确匹配，"查得准"</td><td>像 Ctrl+F 关键词搜索</td></tr>
+    </table>
+    <p><span class="tag tag-code">代码路径</span> <code>app/lm/embedding_utils.py</code></p>
+    <pre><code># 一次调用输出两种向量
+from FlagEmbedding import BGEM3FlagModel
+model = BGEM3FlagModel('BAAI/bge-m3', use_fp16=True)
+output = model.encode(text)
+dense_vec = output['dense_vecs']      # 1024 维稠密向量
+sparse_vec = output['lexical_weights'] # 稀疏关键词权重</code></pre>
+    <p><strong>为什么要两种？</strong> 单靠 dense：用户搜"HAK 180 烫金机"可能召回"热转印设备"（语义相近但不是同一个）；单靠 sparse：用户搜"怎么开机"召回不到"启动电源"（用词不同但意思一样）。</p>
+  </div>
+
+  <!-- 概念 4：Milvus 混合检索 -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">2.4 Milvus 混合向量检索</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> Dense 和 Sparse 两路并行检索，结果加权融合（dense 0.8 + sparse 0.2）。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像搜索引擎同时跑 BM25 和向量召回，最后用 RRF 或加权融合排序。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/clients/milvus_utils.py</code></p>
+    <pre><code># 混合搜索请求：同时发 dense 和 sparse 两路
+reqs = create_hybrid_search_requests(
+    dense_vector=dense_vec,
+    sparse_vector=sparse_vec,
+    expr=f'item_name in ["HAK 180 烫金机"]',  # 按商品名过滤
+    limit=10
+)
+res = hybrid_search(client, collection_name, reqs,
+                    ranker_weights=(0.8, 0.2))  # dense 权重更高</code></pre>
+  </div>
+</section>
+
+<!-- ===== 查询链路 ===== -->
+<section id="query">
+  <h2>三、在线查询链路（核心）</h2>
+
+  <!-- LangGraph -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">3.1 LangGraph 状态机编排</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 用 LangGraph 把查询流程做成状态机，支持条件分叉、并行节点、状态流转。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像 React Router + 状态机：每个节点是一个页面/组件，state 是全局状态，条件边就是路由守卫（有 answer 就跳结果页，没有就继续走检索）。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/query_process/agent/main_graph.py</code></p>
+    <pre><code># 图结构：
+# 入口 → 商品名确认 → [条件分叉]
+#   ├─ 有 answer → 直接输出（反问/拒绝）
+#   └─ 无 answer → 4 路并行召回 → 合并 → RRF → Rerank → LLM 生成 → 结束</code></pre>
+
+    <h3>条件路由（面试高频）</h3>
+    <pre><code>def route_after_item_confirm(state):
+    if state.get("answer"):        # 已经有答案了（反问/拒绝）
+        return "node_answer_output"  # 直接输出，跳过检索
+    return "node_multi_search"      # 继续走多路检索</code></pre>
+  </div>
+
+  <!-- 商品名确认 -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">3.2 商品名智能确认（多规则）</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 用户说"这个多少钱"，系统先用 LLM 提取商品名，再去 Milvus 对齐，分 A/B/C/D 四种情况处理。</p>
+    <table>
+      <tr><th>规则</th><th>条件</th><th>处理方式</th></tr>
+      <tr><td><strong>A</strong></td><td>只有一个高置信度（>0.85）</td><td>直接确认，继续检索</td></tr>
+      <tr><td><strong>B</strong></td><td>多个高置信度</td><td>优先精确匹配，否则取最高分</td></tr>
+      <tr><td><strong>C</strong></td><td>只有中置信度（0.6~0.85）</td><td>生成反问句，让用户选</td></tr>
+      <tr><td><strong>D</strong></td><td>全部 < 0.6</td><td>直接拒绝，说没找到</td></tr>
+    </table>
+    <p><span class="tag tag-code">代码路径</span> <code>app/query_process/agent/nodes/node_item_name_confirm.py</code></p>
+  </div>
+</section>
+
+<!-- ===== 多路召回 ===== -->
+<section id="recall">
+  <h2>四、多路召回（核心亮点）</h2>
+
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">4.1 为什么要多路召回？</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 单路检索有盲区：向量懂语义但不懂精确术语，BM25 反过来。多路并行 + 融合，召回率比单路高 20%+。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像搜索时同时跑"语义搜索"和"关键词搜索"，结果合并后排序——不会因为用户换了个说法就搜不到。</p>
+
+    <h3>四路并行召回</h3>
+    <table>
+      <tr><th>召回路径</th><th>解决什么问题</th><th>代码节点</th></tr>
+      <tr><td><strong>Dense 向量检索</strong></td><td>语义泛化（"怎么开机" → "启动电源"）</td><td><code>node_search_embedding</code></td></tr>
+      <tr><td><strong>Sparse 关键词</strong></td><td>精确术语（型号、编号）</td><td>同上，混合检索内置</td></tr>
+      <tr><td><strong>HyDE 假设检索</strong></td><td>query 太短语义稀疏</td><td><code>node_search_embedding_hyde</code></td></tr>
+      <tr><td><strong>知识图谱 / 联网</strong></td><td>文档里没有的信息</td><td><code>node_query_kg</code> / <code>node_web_search_mcp</code></td></tr>
+    </table>
+  </div>
+
+  <!-- HyDE -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">4.2 HyDE（Hypothetical Document Embeddings）</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 用户 query 通常很短（"多少钱？"），直接向量检索效果差。先让 LLM 根据问题"假设性"写一段答案，再拿这段答案去向量检索——因为答案和文档的语义分布更接近。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像搜索时你先脑补"我要找的应该是关于 XX 的内容"，再带着这个脑补去搜——比直接搜两个字准多了。</p>
+    <pre><code># HyDE 流程：
+# 1. 用户问："HAK 180 多少钱？"
+# 2. LLM 生成假设答案："HAK 180 烫金机的市场价格约为 5000 元左右，根据配置不同有所浮动..."
+# 3. 用这段假设答案去向量检索（而不是用原始 query）
+# 4. 召回率显著提升</code></pre>
+  </div>
+
+  <!-- RRF -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">4.3 RRF 倒数排名融合</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 多路召回的结果不看分数，只看排名，用公式 <code>score = Σ 1/(k + rank)</code> 融合，k=60。</p>
+    <p><span class="tag tag-analogy">前端类比</span> 就像多个评委打分——各路的分数量纲不一样（cosine 是 0~1，BM25 可能几十），直接加权求和会被某一路"分数劫持"。RRF 只看排名第几，公平且简单。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/query_process/agent/nodes/node_rrf.py</code></p>
+    <pre><code>def reciprocal_rank_fusion(source_weights, k=60):
+    score_map = {}
+    for docs, weight in source_weights:
+        for rank, item in enumerate(docs, start=1):
+            chunk_id = item.get("chunk_id")
+            score_map[chunk_id] = score_map.get(chunk_id, 0) + weight * (1.0 / (k + rank))
+    # 按分数降序返回
+    return sorted(score_map.items(), key=lambda x: -x[1])</code></pre>
+    <p><strong>为什么不用归一化加权？</strong> 各路分数分布差异大，归一化很难调；RRF 不需要调参，鲁棒性极强，工业标配。</p>
+  </div>
+</section>
+
+<!-- ===== Rerank ===== -->
+<section id="rerank">
+  <h2>五、Rerank 精排（决定答案上限）</h2>
+
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">5.1 Rerank 和召回的本质区别</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <table>
+      <tr><th></th><th>召回（Recall）</th><th>重排（Rerank）</th></tr>
+      <tr><td><strong>目标</strong></td><td>求全，不漏</td><td>求准，挑最好的</td></tr>
+      <tr><td><strong>模型</strong></td><td>双塔（query 和 doc 分别编码）</td><td>交叉编码（query+doc 拼一起）</td></tr>
+      <tr><td><strong>速度</strong></td><td>快（毫秒级，百万级扫）</td><td>慢（只对几百条候选算）</td></tr>
+      <tr><td><strong>精度</strong></td><td>粗</td><td>精</td></tr>
+    </table>
+    <p><span class="tag tag-analogy">前端类比</span> 召回就像搜索的"初步结果列表"，Rerank 就像你逐一点开看哪个最相关——后者慢但准。</p>
+  </div>
+
+  <!-- 动态 TopK -->
+  <div class="concept-block">
+    <div class="header">
+      <span class="title">5.2 动态 TopK 断崖截断</span>
+      <span class="tag tag-conclusion">核心结论</span>
+    </div>
+    <p><span class="tag tag-conclusion">一句话</span> 不是机械取前 10 条，而是检测分数断崖：如果第 i 条和第 i+1 条的分数差超过阈值（绝对 0.5 或相对 25%），就截断。</p>
+    <p><span class="tag tag-code">代码路径</span> <code>app/query_process/agent/nodes/node_rerank.py</code></p>
+    <pre><code># 断崖截断逻辑：
+for i in range(min_topk - 1, max_topk - 1):
+    gap = score[i] - score[i+1]
+    rel = gap / abs(score[i])
+    if gap >= 0.5 or rel >= 0.25:  # 触发断崖
+        topk = i + 1  # 截断到这里
+        break</code></pre>
+    <p><strong>为什么要这么做？</strong> 避免把低相关的噪声文档送进 LLM——上下文越长，LLM 越容易被干扰，答案质量越差。</p>
+  </div>
+</section>
+
+<!-- ===== 面试速查 ===== -->
+<section id="interview">
+  <h2>六、面试速查表</h2>
+
+  <div class="interview-card">
+    <div class="q">Q1：召回和检索是一个意思吗？</div>
+    <div class="a">不是。召回是检索的第一阶段（粗排），追求"别漏掉"；检索 = 召回 + 重排（Rerank）。召回从百万级文档粗筛出几百条，Rerank 再精挑出 top 3~5 条。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q2：为什么用 RRF 不用加权求和？</div>
+    <div class="a">各路分数量纲不一样（cosine 0~1，BM25 可能几十），归一化做不好就会"分数劫持"。RRF 只看排名不看分数，简单且鲁棒，是工业标配。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q3：HyDE 是什么？为什么有用？</div>
+    <div class="a">用户 query 通常很短、语义稀疏，直接向量检索效果差。先让 LLM 假设性写一段答案，再拿这段答案去检索——因为答案和文档的语义分布更接近，召回率更高。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q4：切片为什么要 overlap？多少合适？</div>
+    <div class="a">保证跨 chunk 的上下文不被切断。太小（5%）上下文断了，太大（30%）冗余重复。15% 是经验值，平衡连贯性和检索精度。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q5：为什么用 LangGraph 不用普通顺序调用？</div>
+    <div class="a">查询链路有条件分叉——商品名确认完可能直接返回（反问/拒绝），也可能走 4 路并发。LangGraph 天然支持状态机、条件边、并行节点，比自己写 if-else 可维护性强太多。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q6：Dense 和 Sparse 向量分别解决什么问题？</div>
+    <div class="a">Dense 懂语义泛化（"怎么开机" → "启动电源"），Sparse 懂精确术语（型号、编号）。混合检索兼顾两者，dense 权重 0.8，sparse 权重 0.2。</div>
+  </div>
+
+  <div class="interview-card">
+    <div class="q">Q7：Rerank 的动态 TopK 是什么意思？</div>
+    <div class="a">不是固定取前 N 条，而是检测分数断崖——相邻两条分数差超过绝对阈值 0.5 或相对阈值 25% 就截断。避免低相关噪声进 LLM，提升答案质量。</div>
+  </div>
+
+  <div class="card highlight" style="margin-top: 24px;">
+    <h3>收尾话术（主动引导面试官）</h3>
+    <p>"这个项目里我觉得最有意思的是<strong>多路召回的融合策略</strong>和<strong>Rerank 的动态截断</strong>，如果您感兴趣我可以再展开讲一下具体实现。"</p>
+    <p style="color: var(--muted);">把话题引到你准备最充分的地方，不要让面试官带你跑。</p>
+  </div>
+</section>
+
+</main>
+
+</main>
+</body>
+</html>

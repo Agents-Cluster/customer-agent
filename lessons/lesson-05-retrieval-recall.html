@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 05 检索链路：意图确认与多路召回</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 05</div>
+  <h1>检索链路：意图确认与多路召回</h1>
+  <div class="sub">node_item_name_confirm → 四路并发召回（向量 / HyDE / Web / 图谱）</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 90 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>用户的问题进来后，系统怎么「听懂」并确认问的是哪个商品？</li><li>为什么召回要拆成四路并行？每一路解决什么问题？</li><li>意图确认阶段在什么情况下会直接输出答案、跳过检索？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 35 分钟 · 代码走读 30 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能说出 node_item_name_confirm 的 6 个步骤（提取→向量化→搜索→对齐→确认→更新状态）</li>
+      <li>能解释评分规则 A-D：0.85 高置信、0.6 中置信、多候选反问、低分拒绝</li>
+      <li>能说明四路召回各自的差异（向量语义 / HyDE 假设文档 / Web 实时 / KG 图谱）</li>
+      <li>能解释「改写问题（rewritten_query）」为什么让后续检索更稳</li>
+      <li>能 30 秒回答「检索前为什么要先做意图确认」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道旧课复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">覆盖 Lesson 1-4 与本节课主题。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · 意图确认：听懂用户问的是哪个商品</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">先用 LLM 从问题+历史中提取商品名并改写问题，再用向量检索到商品库核对置信度，按规则确认或反问/拒绝。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">用户说「这个多少钱？」——「这个」指什么？系统先结合上一轮历史推断出商品名，再去商品库里查这个商品是不是真的存在，置信度高就直接往下查，模糊就给用户几个选项确认，查不到就老实说没有。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端路由的「参数解析 + 鉴权」：先从 URL 解析出参数（LLM 提取 item_names），再校验参数是否合法（Milvus 查证），不合法就 400 让用户改（反问/拒绝）。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_item_name_confirm.py</span>：step_3_extract_info（LLM 提取 item_names + rewritten_query）→ step_4_vectorize_and_query（向量化+Milvus 商品库搜索）→ step_5_align_item_names（评分规则 A-D）→ step_6_check_confirmation（更新状态）。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 评分规则（节选）
+high = [m for m in matches if m.get("score", 0) > 0.85]  # 高置信
+mid  = [m for m in matches if m.get("score", 0) >= 0.6]  # 中置信
+if len(high) == 1:        # 规则A：唯一高置信 → 确认
+    confirmed_item_names.append(high[0]["item_name"])
+elif len(high) > 1:       # 规则B：多个高置信 → 同名优先/取最高
+    ...
+elif len(mid) > 0:        # 规则C：只有中置信 → 进候选，反问用户
+    options.extend(mid)
+else:                     # 规则D：低分 → 拒绝回答</code></pre>为什么这样写：分数阈值把「确定」「模糊」「不存在」三类情况分开处理，避免系统自作主张答错商品。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不确认直接检索正文：用户问「华为 P60」时库里同时有 128G 和 Art 两个型号，系统可能拿错型号的说明书来回答，答非所问。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a 问烫金机、b 问万用表：各自提取各自的 item_names，各自查商品库，评分互不影响；确认结果各自写进自己的 state。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">规则依赖阈值（0.85/0.6），阈值不是万能的：极端情况「库里有 5 个相似型号都 >0.85」会走规则 B 取最高分，仍可能选错 —— 所以候选反问（规则 C）比硬猜更安全。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">构造 4 种 mock 评分（唯一高/多高/中/低），单测 node_item_name_confirm 看走哪个分支，日志有「规则A/B/C/D命中」字样。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「意图确认是检索前的『听懂』环节：先用 LLM 从问题和历史中提取商品名、改写独立完整的问题，再向量检索商品库核对置信度。0.85 以上唯一就确认，多个就取同名或最高分，0.6 左右进候选反问用户，太低就拒绝。这一步保证后续检索永远基于『确认过的商品』，避免答错型号。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · 问题改写（rewritten_query）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">把「不完整的口语问题」结合历史改写成「独立完整的问题」，让后续向量检索和 LLM 都能正确理解。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">用户第一句「HAK 180 怎么操作？」，第二句「那温度设多少？」—— 第二句单独看不知道在说什么。改写把它变成「HAK 180 烫金机的温度应该设置多少？」，独立成句。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像搜索引擎的 query 补全 / 会话式搜索的上下文注入；也像把「它」这种代词在代码里替换成真实变量名，消除歧义。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_item_name_confirm.py</span> step_3_extract_info；提示词 <span class="path">prompts/rewritten_query_and_itemnames.prompt</span>；QueryGraphState 字段 rewritten_query。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># LLM 提取（JSON 结构化输出）
+result = json.loads(llm_response)   # {"item_names": [...], "rewritten_query": "..."}
+state["item_names"] = result.get("item_names", [])
+state["rewritten_query"] = result.get("rewritten_query", query)</code></pre>为什么这样写：检索和生成都用 rewritten_query，而不是用户原话，避免「这个」「那个」这类代词破坏向量相似度。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">直接用原始问题向量化：「这个多少钱」向量化后和任何商品文档都不相似，召回全空。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">每个会话的历史不同，改写出不同结果；session_id 隔离保证互不串扰。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">改写依赖 LLM：模型可能改写错误或漏掉关键信息（尤其多轮历史很长时），所以项目同时保留 original_query 作为兜底，prompt 里 `question = rewritten_query if rewritten_query else original_query`。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">模拟两轮对话，观察 state["rewritten_query"] 是否把「那温度设多少」补全为含商品名的完整问句。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「多轮对话里用户常问『这个多少钱』这种不完整问题，直接向量化根本匹配不上。我在意图确认阶段用 LLM 结合历史把问题改写成语义完整的 rewritten_query，后续检索、Rerank、生成全部基于改写后的问题，准确率明显提升。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · 四路并行召回：向量 / HyDE / Web / 图谱</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">同一问题同时走「稠密+稀疏混合检索、HyDE 假设文档检索、联网搜索、知识图谱检索」四路，再汇合排序，提高召回覆盖率。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">单路检索像只问一个朋友；四路检索像同时问四个擅长不同方面的朋友，最后综合意见。每个朋友都可能发现别人没注意到的线索。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像「多数据源聚合」：前端同时请求本地缓存、远程 API、CDN、第三方服务，然后合并展示 —— 并行请求 + 结果聚合。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/main_graph.py</span>：node_multi_search 分叉到 node_search_embedding / node_search_embedding_hyde / node_web_search_mcp / node_query_kg，全部汇入 node_join。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 四路各自的产出（都进 node_join）
+state["embedding_chunks"]      # 向量混合检索：本地知识库切片
+state["hyde_embedding_chunks"] # HyDE：先假设答案再检索的切片
+state["web_search_docs"]       # Web 搜索：实时/库外信息
+state["kg_chunks"]             # 图谱检索：实体关系信息</code></pre>为什么这样写：知识库覆盖不到的实时信息（如最新价格）靠 Web 路，语义模糊的表达靠 HyDE 路，精确型号靠向量路 —— 互补覆盖。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">只有向量一路：用户问「这机器现在多少钱」（需要实时信息，库里有历史文档但没最新价格）时答不出；或用户表达方式与文档完全不同时召回失败。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">四路是并行执行的，总耗时 ≈ 最慢一路。若 Web 搜索超时（MCP 服务 300 秒超时），会拖慢整个回答 —— 所以各节点必须降级返回空列表，不能让单路故障阻塞全链路。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">多路召回是「召回阶段」的策略，召回多了必然混入噪音 —— 这正是后续 RRF + Rerank 存在的意义：先把多路结果融合去重，再精排筛掉无关项。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">观察检索日志中四路各自返回的数量：embedding/hyde 一般非空，web 在有实时需求时非空，kg 视图谱数据而定。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「召回阶段我做了四路并行：向量混合检索覆盖本地知识库的语义匹配，HyDE 先让 LLM 生成假设答案再检索来弥合表达差异，Web 搜索补充实时和库外信息，知识图谱提供实体关系。四路结果汇合后交给 RRF 融合去重、Rerank 精排。多路召回提升覆盖率，后续排序负责去噪。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · HyDE（假设性文档嵌入）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">HyDE = 先让 LLM 根据问题写一段「假设答案」，再用这段答案去向量检索 —— 因为答案和文档更相似。 <span class="badge b-gen">[通用知识]</span> <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">问题「这机器怎么用」和文档「操作说明」风格差异大，向量距离远。HyDE 让 LLM 先假装回答「操作步骤是……」，生成的假设答案和文档风格接近，检索命中率提高。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像搜索前先「用 AI 生成一个理想答案片段」作为搜索关键词，再拿它去搜 —— 类似「以文搜文」而非「以词搜文」。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_search_embedding_hyde.py</span>；提示词 <span class="path">prompts/hyde_prompt.prompt</span>。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># HyDE：先生成假设文档（伪代码）
+hypo_doc = llm.invoke(hyde_prompt.format(query=rewritten_query))
+embeddings = generate_embeddings([hypo_doc])     # 用假设文档向量化
+results = hybrid_search(client, collection, ...)  # 检索知识库
+state["hyde_embedding_chunks"] = results</code></pre>为什么这样写：把「问题→文档」的检索转化为「文档→文档」的检索，弥合 query 与 doc 的表示鸿沟。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不用 HyDE：用户口语化提问（「咋整」「咋弄」）与文档书面语差距大，纯向量检索相似度低，TopK 里可能全是无关文档。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">HyDE 和普通向量检索并行：HyDE 多一次 LLM 调用（多几百毫秒~几秒），但和主路并行，不增加总时延。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">HyDE 假设答案可能「编造细节」，检索会偏向相似风格的文档 —— 它提升召回但不提升精度，噪音需要 Rerank 消除。且多一次 LLM 调用增加成本。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">对比同一问题普通检索与 HyDE 检索的 Top5 chunk_id 差异，观察 HyDE 是否召回更多语义相关的文档。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「HyDE 的核心是让 LLM 先根据问题生成一段假设答案，再用这段答案做向量检索。因为假设答案和知识库文档的表示更接近，能弥合口语问题与书面文档之间的语义鸿沟，提升召回率。它和普通向量检索并行执行，不增加总时延，但会带来噪音，交给后面的 Rerank 精排消除。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 E · Web 搜索 MCP：把外部世界接进来</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">通过 MCP（Model Context Protocol）连接远程 Web 搜索工具，给知识库补充实时和库外信息。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">知识库是「公司的档案柜」，Web 搜索是「上网查」。档案柜里没有的（比如昨天刚发布的新型号价格），上网一查就有。MCP 就是「统一插头」，让 AI 应用能即插即用各种外部工具。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端调用第三方 API（天气、地图、支付）——通过统一 SDK 接入；MCP 相当于 AI 领域的「统一 API 协议」，SSE 是它的传输通道之一。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_web_search_mcp.py</span>：MCPServerSse 连接百炼 WebSearch 服务；配置 <span class="path">app/conf/bailian_mcp_config.py</span>；调用工具 bailian_web_search。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>search_mcp = MCPServerSse(name="search_mcp", params={
+    "url": mcp_config.mcp_base_url,
+    "headers": {"Authorization": mcp_config.api_key},
+    "timeout": 300, "sse_read_timeout": 300})
+await search_mcp.connect()                     # 建立 SSE 连接
+result = await search_mcp.call_tool("bailian_web_search", {"query": rewritten_query})
+state["web_search_docs"] = parse_result(result)</code></pre>为什么这样写：用现成 MCP 工具而非自建爬虫，鉴权、重试、协议都由 MCP 服务端封装。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">只依赖知识库：用户问「现在最新款是什么」这类时效性问题，文档库永远滞后，答案过时甚至没有。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">多个会话同时触发 Web 搜索：MCP 客户端是每请求新建连接，注意连接数上限；超时 300 秒的设置是为慢搜索兜底，实际大部分秒级返回。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">Web 搜索结果是「未经验证的第三方信息」，可信度低于本地知识库 —— 所以 Rerank 阶段把 local 和 web 合并打分，但 prompt 里标注来源（[local]/[web]），让 LLM 和用户都能区分。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">问一个知识库里没有但网上常见的时效性问题（如某型号最新价格），观察 web_search_docs 是否有返回，答案是否引用了 web 来源。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「知识库解决『公司内部文档』，但覆盖不了实时和外部信息。我用 MCP 协议连接百炼 Web 搜索工具，作为第四路召回：MCP 统一了工具接入方式，SSE 传输，鉴权超时都有封装。搜索结果是未经验证的外部信息，所以重排后会在答案里标注 [local]/[web] 来源。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>意图确认的评分规则 A/B/C/D 分别对应什么场景？</li>
+      <li>为什么「这个多少钱」必须改写成独立完整问题才能检索？</li>
+      <li>四路召回各自弥补了什么盲区？</li>
+      <li>HyDE 提升的是召回率还是精度？为什么？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：mock 四路召回并观察 RRF 输入</h3>
+    <ul>
+      <li><b>输入</b>：node_item_name_confirm.py 的单元测试部分（`__main__`）</li>
+      <li><b>操作</b>：① 运行该节点单测，观察 step_3/4/5/6 日志走向；② 记录最终 state 的 confirmed_item_names 和 options；③ 手动构造三种输入（唯一高/多个高/中置信），看规则分支日志</li>
+      <li><b>预期结果</b>：日志出现「规则A/B/C/D命中」，确认结果符合预期</li>
+      <li><b>失败先查</b>：若连不上 Milvus，检查 .env 的 Milvus 配置；若 LLM 提取失败，检查提示词文件与 API Key</li>
+      <li><b>注意</b>：涉及外部依赖（LLM/Milvus），首次运行确保环境就绪；可先只看日志不看真实检索</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">讲一遍「听懂（意图确认）→ 分头找（四路召回）→ 汇合（join）」的故事，重点讲清楚每一步在防什么错。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（复习题至少对 3 道）</li>
+      <li>能画出 node_item_name_confirm → multi_search → 四路 → join 的完整结构</li>
+      <li>能默写评分阈值（0.85 / 0.6）并解释 A-D 规则</li>
+      <li>能说出四路召回各自的盲区与互补关系</li>
+      <li>能说出 HyDE 的一个边界（提升召回但引入噪音、多一次 LLM 调用）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 07 检索数据图与状态定义 · 08 检索Web服务端搭建 · 09 检索节点 1-4；代码已对照 app/query_process/agent/nodes/node_item_name_confirm.py、node_search_embedding.py、node_web_search_mcp.py 核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】Milvus 入库实现幂等的方法是？",opts:["用时间戳去重","插入前按 item_name 删旧数据","事务回滚","定时清理"],ans:1,exp:"先删后插：同 item_name 旧数据删除后再插入，重导即更新，避免重复切片。"},{no:2,q:"【复习】BGE-M3 双向量中，稀疏向量主要用于？",opts:["语义相似度","图片识别","关键词精准匹配","排序"],ans:2,exp:"稀疏向量是变长键值对，记录关键词位置，用于精确匹配；稠密向量负责语义。"},{no:3,q:"意图确认中评分 > 0.85 且唯一时，走哪个规则？",opts:["规则B：多高置信","规则C：中置信候选","规则D：拒绝","规则A：唯一高置信→确认"],ans:3,exp:"唯一高置信直接确认。多个高置信走 B 取同名或最高分，中置信走 C 进候选反问，低分走 D 拒绝。"},{no:4,q:"规则 C（中置信候选）的处理是？",opts:["把候选放进 options，反问用户选择","直接确认最高分","拒绝回答","随机选一个"],ans:0,exp:"中置信（≥0.6 且无高置信）进 options 反问用户，比硬猜安全。这是『不懂就问』的设计。"},{no:5,q:"rewritten_query 的作用是？",opts:["压缩问题长度","把不完整口语问题结合历史改写成独立完整问题","加密用户问题","给问题排序"],ans:1,exp:"多轮对话中『这个多少钱』脱离上下文无法检索；改写补全商品名和语义后，检索和生成都用它。"},{no:6,q:"【复习】检索主图中 node_multi_search 分叉出几路？",opts:["2","3","4","5"],ans:2,exp:"四路：node_search_embedding、node_search_embedding_hyde、node_web_search_mcp、node_query_kg。"},{no:7,q:"HyDE 检索的核心思路是？",opts:["用问题原词检索","把文档翻译成问题","只检索标题","先让 LLM 生成假设答案，再用假设答案向量化检索"],ans:3,exp:"假设答案与文档表示更接近，弥合口语问题与书面文档的语义鸿沟，提升召回。"},{no:8,q:"Web 搜索 MCP 的传输通道是？",opts:["SSE（Server-Sent Events）","WebSocket","HTTP 轮询","gRPC"],ans:0,exp:"MCPServerSse 通过 SSE 连接百炼 WebSearch 服务，SSE 是 MCP 的传输协议之一。"},{no:9,q:"【复习】LangGraph 中 node_join 用 lambda x: {} 表示？",opts:["清空状态","不更新状态只做汇合点","报错","跳过后续"],ans:1,exp:"返回空字典 = 无字段更新，node_join 只是多路结果的汇合点。"},{no:10,q:"四路召回混入噪音文档后，由谁来去噪精排？",opts:["node_multi_search","node_join","RRF 融合去重 + Rerank 精排","node_answer_output"],ans:2,exp:"RRF 按排名加权融合并去重，Rerank 用模型精读打分筛掉无关项 —— 召回负责覆盖，排序负责精度。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

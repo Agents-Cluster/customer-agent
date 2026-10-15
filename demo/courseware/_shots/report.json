@@ -1,0 +1,143 @@
+{
+  "src": "/Users/lemon/Downloads/PythonProject16/demo/courseware/RAG项目代码精讲.html",
+  "url": "file:///Users/lemon/Downloads/PythonProject16/demo/courseware/RAG%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%B2%BE%E8%AE%B2.html",
+  "outdir": "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots",
+  "include": [
+    "lint",
+    "screenshots",
+    "structure"
+  ],
+  "shots": {
+    "desktop": {
+      "slices": [
+        "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_desktop_p1of2.jpg",
+        "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_desktop_p2of2.jpg"
+      ],
+      "sliceHint": "按顺序 Read slices 里的各分片。",
+      "truncated": false,
+      "structure": {
+        "title": "RAG 智能客服系统 · 代码逻辑精讲",
+        "firstH1": "RAG 智能客服系统 · 代码逻辑精讲",
+        "viewport": {
+          "w": 1440,
+          "h": 757
+        },
+        "fullpage": {
+          "w": 1440,
+          "h": 7226
+        },
+        "counts": {
+          "section": 7,
+          "h1": 1,
+          "h2": 6,
+          "img": 0,
+          "canvas": 0,
+          "svg": 0,
+          "links": 6,
+          "buttons": 0
+        }
+      },
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "horizontalOverflow": [],
+      "resourceErrors": [],
+      "reportSource": "cdp"
+    },
+    "mobile": {
+      "slices": [
+        "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p1of3.jpg",
+        "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p2of3.jpg",
+        "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p3of3.jpg"
+      ],
+      "sliceHint": "按顺序 Read slices 里的各分片。",
+      "truncated": false,
+      "structure": {
+        "title": "RAG 智能客服系统 · 代码逻辑精讲",
+        "firstH1": "RAG 智能客服系统 · 代码逻辑精讲",
+        "viewport": {
+          "w": 500,
+          "h": 701
+        },
+        "fullpage": {
+          "w": 500,
+          "h": 8885
+        },
+        "counts": {
+          "section": 7,
+          "h1": 1,
+          "h2": 6,
+          "img": 0,
+          "canvas": 0,
+          "svg": 0,
+          "links": 6,
+          "buttons": 0
+        }
+      },
+      "consoleErrors": [],
+      "consoleWarnings": [],
+      "horizontalOverflow": [],
+      "resourceErrors": [],
+      "reportSource": "cdp"
+    }
+  },
+  "engine": "chrome_cli",
+  "chromiumExec": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "engineDegraded": true,
+  "engineDegradedReason": "playwright 未装",
+  "elapsedSec": 12.83,
+  "schemaVersion": 2,
+  "status": "pass",
+  "engineInfo": {
+    "name": "chrome_cli",
+    "degraded": true,
+    "degradedReasons": [
+      "playwright 未装"
+    ]
+  },
+  "input": {
+    "original": "/Users/lemon/Downloads/PythonProject16/demo/courseware/RAG项目代码精讲.html",
+    "resolvedPath": "/Users/lemon/Downloads/PythonProject16/demo/courseware/RAG项目代码精讲.html",
+    "baseUrl": "file:///Users/lemon/Downloads/PythonProject16/demo/courseware/RAG%E9%A1%B9%E7%9B%AE%E4%BB%A3%E7%A0%81%E7%B2%BE%E8%AE%B2.html",
+    "protocol": "file",
+    "cwd": "/Users/lemon/Downloads/PythonProject16",
+    "mediaMode": {
+      "reducedMotion": true
+    }
+  },
+  "artifacts": {
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "tiles": [
+          "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_desktop_p1of2.jpg",
+          "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_desktop_p2of2.jpg"
+        ],
+        "visualCoverage": {
+          "complete": true,
+          "reason": null
+        }
+      },
+      {
+        "viewport": "mobile",
+        "tiles": [
+          "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p1of3.jpg",
+          "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p2of3.jpg",
+          "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/RAG项目代码精讲_mobile_p3of3.jpg"
+        ],
+        "visualCoverage": {
+          "complete": true,
+          "reason": null
+        }
+      }
+    ]
+  },
+  "summary": {
+    "blocker": 0,
+    "error": 0,
+    "warning": 0,
+    "info": 0
+  },
+  "findings": [],
+  "prioritizedActions": [],
+  "reportPath": "/Users/lemon/Downloads/PythonProject16/demo/courseware/_shots/report.json"
+}

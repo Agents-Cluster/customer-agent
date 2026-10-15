@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 02 LangGraph 工作流编排</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 02</div>
+  <h1>LangGraph 工作流编排</h1>
+  <div class="sub">状态、节点、边、条件路由、虚拟节点 —— 用前端思维理解</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 80 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>LangGraph 的状态（State）、节点（Node）、边（Edge）分别是什么？</li><li>「条件路由」和「虚拟节点」解决什么问题？</li><li>一个请求进来，状态是怎么一路传递和更新的？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 30 分钟 · 代码走读 25 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能解释 TypedDict 状态类为什么能「自动补全 + 类型检查」</li>
+      <li>能说明 add_node / add_edge / set_entry_point / add_conditional_edges 各自作用</li>
+      <li>能讲清检索主图里 node_multi_search 和 node_join 两个虚拟节点的设计意图</li>
+      <li>能说出条件路由函数返回值的两种去向（节点名 或 END）</li>
+      <li>能回答「LangGraph 和直接写 if-else 流程有什么区别」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道 Lesson 1 复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">题目混合了上节课与本节课主题，模拟间隔重复。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · TypedDict 状态类（State）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">状态类是一个「字段清单」，规定工作流里所有节点共享的数据结构和类型。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">把工作流想象成一辆接力车：每个节点往车里放东西、取东西。TypedDict 就是这张「货物清单」，写明了车里该有哪些东西、各是什么类型，防止节点之间乱塞。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">类似 TypeScript 的 interface + Redux 的单一状态树。前端里你定义 `type AppState = { user: User; cart: Cart[] }`，LangGraph 里就是 `class QueryGraphState(TypedDict)`，IDE 有自动补全、写错字段直接报错。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/state.py</span> 定义 QueryGraphState：session_id、original_query、embedding_chunks、hyde_embedding_chunks、web_search_docs、rrf_chunks、reranked_docs、prompt、answer、item_names、rewritten_query、history、is_stream。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>from typing_extensions import TypedDict
+class QueryGraphState(TypedDict):
+    session_id: str          # 会话唯一标识
+    original_query: str      # 用户原始问题
+    reranked_docs: list      # 重排后的最终 Top-K 文档
+    answer: str              # 最终生成的答案
+    is_stream: bool          # 是否流式输出</code></pre>为什么这样写：TypedDict 让每个节点 `state.get("reranked_docs")` 都有类型提示，团队协作不易写错字段名。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">如果不用 TypedDict 而用普通 dict：节点间传参全靠记忆，一个拼写错误（reranked_doc 少个 s）会在运行时静默失败，非常难排查。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a、b、c 三个会话同时运行：LangGraph 每次 invoke 创建独立的状态实例，同一份 TypedDict 定义被三个实例复用，互不干扰 —— 就像 Redux 里 createStore 多次实例化。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">TypedDict 只是「类型约定」，运行时并不强制校验字段是否齐全。节点里仍要写 `state.get("xxx") or []` 这类防御性取值，防止字段缺失崩溃。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">打开 state.py 看字段注释；在编辑器里输入 `state.` 观察是否出现字段补全。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「LangGraph 用 TypedDict 定义工作流状态，相当于给所有节点一张共享数据结构的类型清单。节点函数接收这个状态、返回部分字段的更新，LangGraph 自动合并，实现节点间数据传递，同时享受 IDE 类型检查。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · 节点、边与入口（add_node / add_edge / set_entry_point）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">节点 = 一个业务函数；边 = 执行顺序；入口 = 第一个执行的节点。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">节点是「干活的工人」，边是「工人之间的传送带」，入口是「第一个上班的工人」。LangGraph 负责按传送带顺序把状态传给每个工人。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像 express/koa 中间件栈：每个中间件（节点）处理请求对象（state），调用 next() 进入下一个。也像 webpack 的 loader 链：entry → loader1 → loader2 → output。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/main_graph.py</span>：add_node 注册 7 个节点，set_entry_point("node_entry")，然后一串 add_edge 串起流水线。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>workflow = StateGraph(ImportGraphState)
+workflow.add_node("node_entry", node_entry)          # 注册节点（名字, 函数）
+workflow.set_entry_point("node_entry")               # 指定入口
+workflow.add_edge("node_bge_embedding", "node_import_milvus")  # 顺序边
+kb_import_app = workflow.compile()                   # 编译为可执行对象
+kb_import_app.invoke(initial_state)                  # 触发执行</code></pre>为什么这样写：声明式描述流程，顺序/分支一目了然，比散落的 if-else 好维护。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不注册节点直接用函数调函数（node1 → node2 → node3）：流程藏在调用栈里，想插入一个节点、加个分支都要改多处代码；LangGraph 里只改 add_edge 一行。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">一个导入任务执行到 node_bge_embedding 时，另一个任务可以同时跑在 node_document_split —— 节点函数本身是无共享状态的，LangGraph 支持多任务交错。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">节点函数必须「接收 state、返回 dict（或 state）」—— 返回的 dict 会被合并进状态。如果节点函数不返回任何值，后续节点拿不到它的产出。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">运行 node_entry.py 的单元测试（`python -m app.import_process.agent.nodes.node_entry`），观察三组测试的日志输出。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「LangGraph 里节点是普通函数，边定义执行顺序，入口指定第一个节点。我在导入链路注册了 7 个业务节点，用 add_edge 串成流水线，compile 后 invoke 执行。改流程时只改边，不动节点函数，可维护性好。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · 条件路由（add_conditional_edges）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">条件路由 = 根据当前状态动态决定下一个节点，返回值可以是节点名或 END。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">流水线上的「分拣员」：看一眼货（state）上的标签，把货送到不同的传送带。比如入口节点判断文件是 PDF 还是 MD，分拣员就把任务送到不同的处理线。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">前端路由守卫（beforeEach）：根据登录态决定去 /login 还是 /home。或 Redux 中间件里根据 action.type 分发到不同 reducer。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/main_graph.py</span> 的 route_after_entry：is_md_read_enabled → node_md_img；is_pdf_read_enabled → node_pdf_to_md；否则 END。检索主图的 route_after_item_confirm：state 有 answer 就直接去输出，否则去多路搜索。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>def route_after_entry(state: ImportGraphState) -> str:
+    if state.get("is_md_read_enabled"):
+        return "node_md_img"      # MD 直接读，跳过 PDF 转 MD
+    elif state.get("is_pdf_read_enabled"):
+        return "node_pdf_to_md"   # PDF 先转 MD
+    else:
+        return END                # 都没开，结束
+
+workflow.add_conditional_edges("node_entry", route_after_entry,
+    {"node_md_img": "node_md_img", "node_pdf_to_md": "node_pdf_to_md", END: END})</code></pre>为什么这样写：把「判断逻辑」独立成函数，主图里只声明「入口节点走条件路由」，读代码时一眼看到分支结构。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不用条件路由，在 node_entry 内部直接调用下一个节点函数：分支逻辑和业务逻辑混在一起，而且 LangGraph 的图结构里看不到分支，调试时链路不清晰。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">同时导入一个 PDF 和一个 MD：两个任务各自的状态里开关不同，分拣员各判各的，一个走 PDF 线、一个走 MD 线，互不影响。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">路由函数的返回值必须与注册的节点名或 END 精确一致，否则 LangGraph 找不到目标节点直接报错。写错一个字符串是最常见的坑。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">在 route_after_entry 里临时加一行 logger.info(state.get("is_md_read_enabled"))，跑导入任务看日志走向哪个分支。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「条件路由让工作流根据状态动态分支。导入链路里入口节点按文件类型路由到 PDF 或 MD 处理线；检索链路里如果意图确认阶段已经能直接回答（比如反问用户），就跳过检索直接输出。判断逻辑独立成函数，图结构清晰。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · 虚拟节点：多路并发的分叉与合并</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">虚拟节点（lambda 函数）只做「分叉 / 合并中转」，本身无业务逻辑，解决多分支流程的组织问题。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">想象高速公路的分流岛和汇合口：分流岛不产生车流，只是让四辆车各走各的路；汇合口再把它们重新汇成一条路。node_multi_search 是分流岛，node_join 是汇合口。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">类似 Promise.all 的语义：把 4 个请求（向量检索 / HyDE / Web搜索 / 图谱）同时发出去，等全部返回再统一处理。虚拟节点就是那个「同时发出」和「等全部返回」的编排点。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/main_graph.py</span>：`builder.add_node("node_multi_search", lambda x: x)` 与 `builder.add_node("node_join", lambda x: {})`。四路搜索全部 add_edge 到 node_join。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 分叉：一个起点引出四条边
+builder.add_edge("node_multi_search", "node_search_embedding")
+builder.add_edge("node_multi_search", "node_search_embedding_hyde")
+builder.add_edge("node_multi_search", "node_web_search_mcp")
+builder.add_edge("node_multi_search", "node_query_kg")
+# 合并：四条边汇入 node_join
+builder.add_edge("node_search_embedding", "node_join")
+builder.add_edge("node_search_embedding_hyde", "node_join")
+builder.add_edge("node_web_search_mcp", "node_join")
+builder.add_edge("node_query_kg", "node_join")
+# node_join 之后统一进入排序
+builder.add_edge("node_join", "node_rrf")</code></pre>为什么这样写：`lambda x: x` 接收 state 原样返回（分叉点不修改）；`lambda x: {}` 返回空字典不更新状态（合并点只汇合）。要扩展第五路搜索，只需再加两条边。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">把四路搜索串行（embedding → hyde → web → kg 一条链）：总耗时为四路之和；并行后总耗时 ≈ 最慢一路。在用户等待答案的场景，时延直接差 3-4 倍。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a 用户问烫金机、b 用户问万用表：各自四条搜索并行跑，各自 node_join 等待自己的四路结果，互不混流。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">多路并行意味着可能某一路超时或失败（如 Web 搜索 MCP 挂了）：需要节点内部做好降级（返回空列表而不是抛异常），否则 node_join 等不到全部结果。项目里各检索节点均有 try/except 兜底。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">读检索主图，数出「从 node_multi_search 出发有几条边」「汇入 node_join 有几条边」，应各为 4 条。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「检索主图用两个虚拟节点实现多路并发的分叉与合并：node_multi_search 把流程分到向量检索、HyDE、Web 搜索、知识图谱四路，node_join 等四路都返回后汇合，再统一进 RRF 排序。这样多路召回并行执行，时延接近最慢一路。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 E · compile 与 invoke：从图到可执行应用</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">compile() 把声明的图编译成可执行应用，invoke() 传入初始状态启动一次完整流程。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">add_node/add_edge 是「画图纸」，compile 是「按图纸盖房子」，invoke 是「开门营业」。图纸可以反复盖房子，房子可以反复营业。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像 webpack 的 config（声明）→ build（编译）→ 运行产物。也像 Redux 的 createStore（一次创建，多次 dispatch）。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v">导入主图：`kb_import_app = workflow.compile()`；检索主图：`query_app = builder.compile()`。Web 服务里拿到编译好的 app 每次请求 invoke。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># Web 服务端（检索）
+query_app = builder.compile()
+# 每次用户提问：
+result_state = query_app.invoke({
+    "session_id": sid, "original_query": question,
+    "history": history, "is_stream": is_stream
+})
+answer = result_state.get("answer")</code></pre>为什么这样写：compile 一次、invoke 多次，避免每次请求都重新建图；invoke 返回最终状态，取出 answer 即可。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">每次请求都重新 add_node + compile：性能浪费，且图对象无法复用连接池等初始化资源。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">同一个 query_app 被 10 个并发请求 invoke：LangGraph 为每次 invoke 建独立状态实例，应用对象本身线程安全可复用。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">invoke 是同步阻塞的；本项目配合 SSE 流式输出时，节点内部用 push_to_session 推送增量，而不是等 invoke 全部结束才返回。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">检索 Web 服务端（query_service.py）里找 query_app.invoke 的调用位置，看传入的初始 state 有哪些字段。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「LangGraph 的图先 compile 成可执行应用，启动时只编译一次；每次用户请求用 invoke 传入初始状态执行完整链路，返回最终状态。应用对象可复用、支持并发，和前端路由表一次注册多次分发是同一个思路。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>TypedDict 状态类相比普通 dict 的优势是什么？运行时它会强制校验吗？</li>
+      <li>条件路由函数返回 END 代表什么？返回节点名字符串代表什么？</li>
+      <li>node_join 为什么用 `lambda x: {}` 而不是 `lambda x: x`？</li>
+      <li>compile 和 invoke 各执行几次最合理？为什么？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：给导入链路加一条日志边</h3>
+    <ul>
+      <li><b>输入</b>：<span class="path">app/import_process/agent/main_graph.py</span></li>
+      <li><b>操作</b>：① 定义一个 3 行的小函数 `def node_debug(state): logger.info(f"当前阶段 file_title={state.get('file_title')}")`；② 用 add_node 注册为 "node_debug"；③ 把它插在 node_md_img 和 node_document_split 之间（add_edge 调整）；④ 重新跑一次导入测试</li>
+      <li><b>预期结果</b>：日志里能看到 file_title 被打印，证明新节点已插入流程且不影响前后节点</li>
+      <li><b>失败先查</b>：若报「node_debug not found」，检查 add_node 是否在 compile 之前调用</li>
+      <li><b>注意</b>：改完可还原，保持原文件不被破坏（或复制一份再改）</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">用「接力车 + 分拣员 + 分流岛」三个比喻，把状态、条件路由、虚拟节点讲给一个不懂后端的人听。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（4 道复习题至少对 3 道）</li>
+      <li>能不看课件写出 add_node / add_edge / add_conditional_edges / set_entry_point 的作用</li>
+      <li>能画出检索主图的完整图结构（含虚拟节点与条件路由）</li>
+      <li>能说出虚拟节点解决的两个问题（并行分叉、结果汇合）</li>
+      <li>能说出条件路由的一个失败边界（返回值与节点名不匹配会报错）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 04 导入数据图与状态定义 · 05 导入节点 · 07 检索数据图与状态定义 · 08 检索Web服务端搭建；代码已对照 app/import_process/agent/main_graph.py、app/query_process/agent/main_graph.py、两个 state.py 核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】RAG 减少幻觉的根本原因是？",opts:["用了更大的模型","对答案做了人工审核","答案被限定在检索到的参考内容内","缓存了高频答案"],ans:2,exp:"RAG 把检索结果作为上下文约束生成，模型只能在给定资料内作答。选 A 是误区，模型大小和幻觉没有直接因果关系。"},{no:2,q:"【复习】掌柜智库双链路之间用什么衔接？",opts:["MongoDB 历史库","MinIO 对象存储","SSE 推送通道","Milvus 向量库"],ans:3,exp:"导入链路把向量写进 Milvus，检索链路从 Milvus 召回，Milvus 是衔接点。MongoDB 存历史、MinIO 存图片。"},{no:3,q:"TypedDict 状态类最大的工程价值是？",opts:["享受 IDE 类型检查与自动补全","运行时强制校验字段","自动持久化状态","自动生成 API 文档"],ans:0,exp:"TypedDict 是类型约定，编译/运行时并不强制校验；价值在开发期的类型提示，防字段拼写错误。"},{no:4,q:"node_join 虚拟节点用 lambda x: {} 返回空字典，含义是？",opts:["清空所有状态","不更新任何状态，只作为汇合点","报错提示","跳过后续节点"],ans:1,exp:"返回空字典意味着『没有字段要更新』，node_join 纯粹作为多路结果的汇合点，不修改状态。若用 lambda x:x 则原样返回，语义上仍不修改。"},{no:5,q:"条件路由函数的返回值可以是？",opts:["任意字符串","布尔值","节点名字符串或 END","字典"],ans:2,exp:"返回值必须是已注册的节点名或 END。返回未注册的名字会报错；布尔值/字典都不被接受。"},{no:6,q:"导入主图入口节点后，MD 直接读的分支是？",opts:["node_pdf_to_md","node_document_split","END","node_md_img"],ans:3,exp:"route_after_entry 中 is_md_read_enabled 为 True 时直接去 node_md_img，跳过 PDF 转 MD，因为输入已是 MD。"},{no:7,q:"【复习】Milvus 存的是哪两种向量？",opts:["稠密向量和稀疏向量","哈希向量和标签向量","词频向量和字符向量","图片向量和音频向量"],ans:0,exp:"BGE-M3 生成稠密（Dense）+ 稀疏（Sparse）双向量，Milvus 用混合检索同时用两者打分（权重 0.8/0.2）。"},{no:8,q:"LangGraph 相比手写 if-else 流程的核心优势是？",opts:["运行速度更快","流程声明式、可视化、易插拔易维护","代码量更少","不需要写函数"],ans:1,exp:"声明式图结构让流程一目了然，加节点/加分支只改边。性能并不占优，代码量也不必然更少。"},{no:9,q:"invoke 传入的初始状态必须包含？",opts:["answer 字段","完整的最终结果","工作流必需的输入字段（如 session_id、original_query）","所有 TypedDict 字段"],ans:2,exp:"只需提供流程必需的输入，其余字段节点会逐步填充。不需要所有字段齐全，TypedDict 不强制。"},{no:10,q:"【复习】检索主图四路并发搜索不包括？",opts:["node_search_embedding","node_web_search_mcp","node_query_kg","node_rrf"],ans:3,exp:"四路是 embedding / hyde / web_search_mcp / query_kg；node_rrf 是四路汇合后的融合排序节点，不属于并发搜索路。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

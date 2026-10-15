@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 04 向量化与 Milvus 入库</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 04</div>
+  <h1>向量化与 Milvus 入库</h1>
+  <div class="sub">node_item_name_recognition → node_bge_embedding → node_import_milvus</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 85 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>文本怎么变成向量？稠密向量和稀疏向量有什么区别？</li><li>Milvus 怎么建集合、建索引、批量入库？</li><li>「幂等导入」是怎么实现的，为什么需要？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 35 分钟 · 代码走读 25 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能解释 BGE-M3 为什么输出「稠密 + 稀疏」双向量，各有什么用途</li>
+      <li>能说明主体识别（item_name）为什么要做、放在哪一步、有什么作用</li>
+      <li>能说出 Milvus 入库节点的 5 个步骤（校验→建表→清理→插入→回填）</li>
+      <li>能解释「先删后插」为什么能实现幂等</li>
+      <li>能 30 秒回答「你的数据是怎么进向量库的」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道旧课复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">覆盖 Lesson 1-3 与本节课主题。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · 主体识别（node_item_name_recognition）：为检索打标签</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">用 LLM 从切片中提取「主体名称」（如商品型号），作为业务标签存进元数据，检索时能按主体过滤和增强。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">一份说明书里可能同时讲了好几个产品。主体识别就像给每块「知识卡片」盖一个章：「这张卡讲的是万用表 RS-12」。盖章后，用户问万用表时就能优先找盖了万用表章的卡。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像给数据打标签（tagging）/ 给文章加分类。也像前端给路由加 meta 字段（如 requiresAuth），后续中间件按 meta 做鉴权 —— 这里按 item_name 做检索增强。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_item_name_recognition.py</span>；提示词文件 <span class="path">prompts/item_name_recognition.prompt</span>；ImportGraphState 里字段 item_name。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 主体识别：LLM 提取商品名（伪代码）
+item_name = llm_invoke_extract(chunk_text)  # "HAK 180 烫金机"
+chunk["metadata"]["item_name"] = item_name   # 写进切片元数据
+state["item_name"] = item_name               # 存到全局状态</code></pre>为什么这样写：把「业务知识」从纯文本里显式提出来，检索时可以做字段过滤 + 文本增强（拼接 item_name + 内容一起向量化）。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不识别主体：用户问「HAK 180 烫金机怎么操作」时，系统只能靠纯向量相似度碰运气；商品名一旦写法和文档不一致，召回质量不稳定。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">批量文档同时导入：每个文档的 item_name 提取是独立 LLM 调用，可按文档并发；同一文档内保持顺序。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">LLM 提取有误识别风险（把「烫金机」识别成「烫金」）；所以检索端还有一道「意图确认」关卡（node_item_name_confirm）做二次确认和反问。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">导入文档后打印 state["item_name"]，人工核对与文档真实主题是否一致。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「主体识别是在导入时用 LLM 从每个切片提取商品名等业务标签，写进元数据。它的价值是让检索链路能按主体过滤和做文本增强，并且和检索端的意图确认配合，形成『导入打标 + 检索确认』的闭环，提升命中准确率。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · BGE-M3 双向量（稠密 + 稀疏）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">BGE-M3 同时输出稠密向量（1024 维，记语义）和稀疏向量（变长键值对，记关键词），混合使用兼顾语义与精确匹配。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">稠密向量像「一个人的气质画像」，抽象但全面；稀疏向量像「名片上的关键词列表」，具体但零散。检索时既比气质又对关键词，两个都对上的最相关。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">稠密 ≈ 语义嵌入（embedding 模型给整段文字一个向量）；稀疏 ≈ 倒排索引里的词频（类似搜索引擎的 TF）。两者结合 = 语义搜索 + 关键词搜索同时做。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_bge_embedding.py</span>：单例 get_bge_m3_ef、批量生成 embeddings、文本增强（拼接 item_name + 内容）；工具函数在 <span class="path">app/lm/embedding_utils.py</span>。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 单例模型：全局只加载一次，省显存省时间
+def get_bge_m3_ef():
+    global _bge_m3_ef
+    if _bge_m3_ef is None:
+        _bge_m3_ef = FlagModel(model_name_or_path=..., use_fp16=True)
+    return _bge_m3_ef
+
+# 双向量生成（伪代码）
+embeddings = generate_embeddings([item_name + " " + chunk_text])
+chunk["dense_vector"]  = embeddings.dense[0]    # 1024 维列表
+chunk["sparse_vector"] = embeddings.sparse[0]   # {token_id: weight}</code></pre>为什么这样写：单例避免模型重复加载（每个模型几百 MB 到几 GB）；拼接 item_name 强化主体特征，检索更准。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">只用稠密向量：精确型号「RS-12」这类关键词可能被语义淹没，同义词过多时召回不准。只用稀疏向量：同义表达（「怎么用」vs「如何操作」）匹配不上。双路互补。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">大批量切片向量化：分批处理（batch）防止显存溢出；多 GPU 可并行，但项目以单机单卡为主，靠批次控制内存。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">向量化是「离线重」步骤：10 万条切片可能耗时数分钟到数十分钟。它发生在导入期而非查询期，所以查询链路依然很快 —— 这就是「以空间/离线算力换在线速度」的典型权衡。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">调用 generate_embeddings 打印 dense 向量长度（应 1024）和 sparse 向量类型（dict）。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「向量化用 BGE-M3 同时生成稠密和稀疏双向量：稠密向量捕捉语义相似度，稀疏向量捕捉关键词精确匹配。模型单例加载、分批处理防显存溢出，并把商品名拼进文本增强主体特征。入库时两个向量都存进 Milvus，检索时做混合打分。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · Milvus 集合、Schema 与自动建表</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">Milvus 的集合（Collection）像 MySQL 的表；Schema 定义字段（含向量字段和索引类型），项目在集合不存在时自动创建。 <span class="badge b-gen">[通用知识]</span> <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">集合 = 一张「向量表」，每行是一条切片：主键 chunk_id、正文 content、商品名 item_name、稠密向量、稀疏向量。Schema = 建表语句，声明每列是什么类型、向量多少维、用什么索引。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像定义 TypeScript 接口 + 建 MySQL 表：字段、类型、索引一起声明。自动建表像 ORM 的 auto-migrate，首次连库自动把表建好。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_import_milvus.py</span> step_2_prepare_collection：连接 Milvus、集合不存在则创建 Schema + 索引；配置在 <span class="path">app/conf/milvus_config.py</span>。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>from pymilvus import DataType
+# 集合不存在时自动创建（伪代码）
+if not client.has_collection(CHUNKS_COLLECTION_NAME):
+    schema = client.create_schema(auto_id=True)          # 主键自增
+    schema.add_field("chunk_id", DataType.INT64, is_primary=True)
+    schema.add_field("content", DataType.VARCHAR, max_length=8192)
+    schema.add_field("item_name", DataType.VARCHAR, max_length=256)
+    schema.add_field("dense_vector", DataType.FLOAT_VECTOR, dim=1024)
+    schema.add_field("sparse_vector", DataType.SPARSE_FLOAT_VECTOR)
+    client.create_collection(CHUNKS_COLLECTION_NAME, schema=schema)</code></pre>为什么这样写：自动建表让「部署即用」，不用手工初始化；向量维度从上游校验结果取，保证一致。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">手工建表：换环境/换集合名就要手工执行 SQL，容易漏建索引导致查询极慢；自动建表 + 代码内校验维度，降低运维心智负担。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">两个任务同时发现集合不存在并发创建：Milvus 客户端有幂等处理，但规范上应在主图层面串行初始化（或加锁），避免竞争建表。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">Schema 一旦创建，字段/维度很难改（要删集合重建）。维度必须和模型输出严格一致（1024），改模型换维度时必须重建集合 —— 这是上线后最痛的迁移点。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">首次导入后查 Milvus 集合列表和字段结构，确认 chunk_id/content/dense_vector/sparse_vector 齐全。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「Milvus 的集合相当于向量表，Schema 声明字段和索引。我们的入库节点在集合不存在时自动建表，向量维度从数据校验结果传入，保证 Schema 与模型输出一致。上线初期用自动建表降低运维成本，但 Schema 一旦定了就很难改，换模型要重建集合。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · 幂等导入：先删后插 + 主键回填</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">同一份文档重复导入不会产生重复数据：入库前先删除该 item_name 的旧数据，再批量插入；Milvus 自增 chunk_id 回填到切片供下游使用。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">「幂等」= 同一操作做 100 遍和做 1 遍结果一样。导入场景里，用户改了 PDF 重新导入是常态；先删旧的再插新的，库里永远只有最新版本，不会越导越多。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像「全量替换」而非「追加」：重新构建时先清空 dist 再打包（clean + build），而不是每次往 dist 里追加文件。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_import_milvus.py</span>：step_3_clean_old_data 按 item_name 删除旧数据；step_4_insert_data 批量插入并把 Milvus 生成的 chunk_id 回填 state["chunks"]。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 幂等：按 item_name 清旧
+client.delete(collection_name, expr=f'item_name == "{item_name}"')
+# 批量插入，Milvus 返回自增主键
+insert_result = client.insert(collection_name, data=rows)
+ids = insert_result.primary_keys
+# 主键回填：把 chunk_id 写回每个切片，供下游引用
+for chunk, cid in zip(chunks, ids):
+    chunk["chunk_id"] = cid
+state["chunks"] = chunks</code></pre>为什么这样写：先删后插保证「重导即更新」；回填 chunk_id 让下游（检索返回、历史记录）能定位到具体切片。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">只插不删：同一文档导入 3 次库里 3 份，检索时重复结果占满 TopK，且旧版本过时内容还会被答出来 —— 数据污染最典型的来源。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">同一文档被两个任务同时导入：先删后插的「删」可能误删对方刚插入的数据。解决方向是导入任务串行化（按 item_name 加锁）或事务隔离 —— 这是幂等设计里最容易翻车的并发细节。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">「按 item_name 删」要求 item_name 稳定且能唯一定位文档；如果两个不同文档同名（同名不同版本），删除会误伤。真实项目需要引入 document_id/版本号做更细粒度的幂等键。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">同一 PDF 连续导入两次，查 Milvus 里该 item_name 的行数保持不变（而不是翻倍）。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「Milvus 入库节点保证幂等：插入前按 item_name 删除旧数据再批量插入，同一文档重复导入不会产生重复切片；Milvus 自增的 chunk_id 回填给切片，下游可以精确定位。这个『先删后插』策略让重导即更新，避免数据污染。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 E · 数据校验：脏数据不进库</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">入库前逐项校验（chunks 非空、向量字段齐全、维度提取），任一不满足就抛异常终止，宁可失败也不写脏数据。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">像快递入库前先扫码核对：没有收件人（空 chunks）不收货；货物破损（缺向量字段）不收货。宁愿这一单失败，也不让坏货混进仓库污染整个库存。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像表单提交前的校验（required、格式检查），前端不合格不发请求；也像 TypeScript 在编译期拦截类型错误。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/import_process/agent/nodes/node_import_milvus.py</span> step_1_check_input；node_bge_embedding.py 的 step_1_validate_input 同样做前置校验。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>chunks_json_data = state.get("chunks")
+if not chunks_json_data:
+    raise ValueError("错误: chunks为空，无法执行Milvus入库")
+if not isinstance(chunks_json_data, list) or len(chunks_json_data) == 0:
+    raise ValueError("chunks 不是有效列表")
+# 校验向量字段存在 + 提取维度
+vector_dimension = len(chunks_json_data[0].get("dense_vector", []))</code></pre>为什么这样写：校验失败 raise 终止节点，由主流程捕获记录，保证「失败可见」，不静默写坏数据。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不校验直接插入：空列表插入成功但库无数据、缺向量字段插入直接报 Milvus 类型错误，问题暴露在更深处，排查成本高。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">校验是纯内存操作，无共享状态，天然并发安全。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">校验能拦「结构错误」但拦不了「内容错误」（如 item_name 识别错了）—— 内容质量靠模型和二次确认兜底，校验只管结构完整性。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">故意传空 chunks 调用节点，观察是否抛出「chunks为空」的 ValueError。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「入库前做严格的数据校验：chunks 必须非空列表、必须有稠密向量字段、提取向量维度。校验失败直接抛异常终止，保证脏数据不进库。结构校验在前，内容质量靠主体识别模型和检索端二次确认兜底。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>稠密向量和稀疏向量各捕捉什么信息？为什么要两个都用？</li>
+      <li>主体识别放在向量化之前有什么好处？</li>
+      <li>「先删后插」为什么能实现幂等？它的并发风险是什么？</li>
+      <li>Milvus Schema 里 dense_vector 维度为什么必须与模型一致？改模型维度会怎样？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：验证幂等导入</h3>
+    <ul>
+      <li><b>输入</b>：一个小 MD 文档 + Milvus 可用环境</li>
+      <li><b>操作</b>：① 首次导入，记录 Milvus 中该 item_name 的行数 N1；② 修改文档内容后再次导入；③ 查询行数 N2</li>
+      <li><b>预期结果</b>：N1 ≈ N2（而不是翻倍），且内容已是新版本</li>
+      <li><b>失败先查</b>：若行数翻倍，检查 step_3_clean_old_data 的删除表达式是否匹配 item_name；若查询报错，检查集合名配置 milvus_config.py</li>
+      <li><b>注意</b>：勿在共享生产环境做破坏性验证；用测试集合或本地 Milvus</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">讲一遍「打标 → 生成双向量 → 自动建表 → 先删后插 → 回填主键」的入库故事，并说明每一步在防什么错。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（复习题至少对 3 道）</li>
+      <li>能画出 node_item_name_recognition → node_bge_embedding → node_import_milvus 的输入输出</li>
+      <li>能解释双向量检索的价值与实现（稠密 1024 维 + 稀疏键值对）</li>
+      <li>能说出幂等导入的实现与并发风险</li>
+      <li>能说出至少一个边界（如 Schema 难改、同名文档误删）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 05 导入节点 5-7 · 07 检索数据图；代码已对照 app/import_process/agent/nodes/node_bge_embedding.py、node_import_milvus.py 核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】node_document_split 的核心目的是？",opts:["压缩文档体积","加密文档","让切片可向量化、可检索、可放入 Prompt","生成文档摘要"],ans:2,exp:"切片解决模型长度限制和检索粒度问题，把长文档拆成语义完整的知识卡片。"},{no:2,q:"【复习】node_md_img 把图片上传到 MinIO 后做了什么？",opts:["删除本地图片","给图片加水印","压缩图片质量","把 Markdown 里的图片路径替换为公网 URL"],ans:3,exp:"上传后替换路径为可访问 URL，前端才能展示；回答节点再用正则从文档提取 URL。"},{no:3,q:"BGE-M3 输出的稠密向量维度是？",opts:["1024","256","512","2048"],ans:0,exp:"项目注释与代码明确：稠密向量 1024 维固定长度，记录深层语义信息。"},{no:4,q:"稀疏向量的数据结构最接近？",opts:["定长数组","变长键值对（token_id: weight）","字符串","二维矩阵"],ans:1,exp:"稀疏向量记录关键词/特征位置，是变长键值对，用于关键词精准匹配。"},{no:5,q:"Milvus 入库节点实现幂等的方法是？",opts:["使用 upsert 覆盖","事务回滚","插入前按 item_name 删除旧数据","定时清理"],ans:2,exp:"step_3_clean_old_data 先删同 item_name 旧数据再插入，重导即更新。项目注释明确「幂等性：插入前删除同item_name旧数据」。"},{no:6,q:"【复习】导入主图里 route_after_entry 判断 MD 直接读的条件是？",opts:["is_pdf_read_enabled","file_title 非空","local_file_path 存在","is_md_read_enabled"],ans:3,exp:"is_md_read_enabled 为 True 时直接去 node_md_img，跳过 PDF 转 MD。"},{no:7,q:"Milvus 入库节点在集合不存在时会？",opts:["自动创建 Schema 和向量索引","报错要求手工建表","使用默认表","跳过入库"],ans:0,exp:"step_2_prepare_collection 自动建表，注释写明「集合不存在时自动创建Schema和向量索引，无需手动初始化」。"},{no:8,q:"Milvus 自增主键 chunk_id 为什么要回填给切片？",opts:["为了显示美观","让下游能精确定位该切片（检索返回、历史记录）","为了排序","无实际用途"],ans:1,exp:"回填后下游（检索、历史、答案引用）能通过 chunk_id 定位具体切片。项目注释：主键回填供下游业务使用。"},{no:9,q:"【复习】LangGraph 节点函数必须满足的约定是？",opts:["返回字符串","异步执行","接收 state 并返回 dict（或 state）","不接收参数"],ans:2,exp:"节点函数接收状态对象、返回要合并进状态的字段字典。返回 None 会导致下游拿不到产出。"},{no:10,q:"向量化节点异常时项目采用的处理方式是？",opts:["抛出异常终止整个导入","重启服务","静默忽略","捕获异常记录日志，不中断整体流程"],ans:3,exp:"node_bge_embedding 注释明确：节点内所有异常均捕获，不终止整体 LangGraph 流程，仅记录错误日志。而入库节点则相反——宁可失败也不脏写。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 07 答案生成与流式输出</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 07</div>
+  <h1>答案生成与流式输出</h1>
+  <div class="sub">Prompt 组装 → LLM 生成 → SSE 流式推送 → MongoDB 历史</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 85 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>重排后的文档怎么组织成 Prompt 送给大模型？长度怎么控制？</li><li>SSE 流式输出是怎么实现的？事件类型有哪些？</li><li>答案怎么存进历史？图片是怎么「双保险」提取的？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 35 分钟 · 代码走读 25 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能说出答案节点的 5 个阶段（查答案→组 Prompt→生成→写历史→final 推送）</li>
+      <li>能解释 MAX_CONTEXT_CHARS=12000 的预算逻辑（文档、历史、商品名共享预算）</li>
+      <li>能说出 SSE 的 5 种事件（ready/progress/delta/final/error）与推送方式</li>
+      <li>能说明图片提取为什么用「代码双保险」而不是信任 LLM 输出</li>
+      <li>能 30 秒回答「答案是怎么流式推给前端的」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道旧课复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">覆盖 Lesson 1-6 与本节课主题。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · 答案节点主流程（5 个阶段）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">答案节点按「查答案 → 组 Prompt → 生成 → 写历史 → 发 final」五步走，是检索链路的终点。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">先看有没有现成答案（比如意图确认阶段的反问句），有就直接发；没有就备好 Prompt、调大模型生成、把答案存进历史、最后通知前端「完事了，可以渲染图片了」。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端页面渲染前先查缓存：缓存命中直接渲染，未命中则请求接口 → 拿到数据 → 写 store → 通知订阅者更新。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_answer_output.py</span>：step_1_check_answer → step_2_construct_prompt → step_3_generate_response → step_4_write_history → final push。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>answer_exists = step_1_check_answer(state)
+if not answer_exists:
+    prompt = step_2_construct_prompt(state)
+    state["prompt"] = prompt
+    step_3_generate_response(state, prompt)
+image_urls = _extract_images_from_docs(state.get("reranked_docs") or [])
+if state.get("answer"):
+    step_4_write_history(state, image_urls=image_urls)
+if state.get("is_stream"):
+    push_to_session(session_id, SSEEvent.FINAL,
+                    {"answer": state["answer"], "status": "completed",
+                     "image_urls": image_urls})</code></pre>为什么这样写：把「判断/组装/生成/持久化/推送」拆成独立步骤，任一阶段可单独测试与降级。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不检查已有答案直接生成：意图确认阶段的反问句会被当成「用户的真实回答」重新生成一遍，多花钱还答错。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">多个会话同时走到答案节点：各自独立生成、独立写历史、独立推送；MongoDB 写入按 session_id 区分。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">写历史失败不应阻塞主链路（项目用 try/except 包住 save_chat_message，失败只记日志）；final 推送只发生在流式模式。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">跑节点本地测试，观察日志中五个阶段的顺序与「写入MongoDB历史记录」「发送 final 事件」字样。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「答案节点分五步：先检查 state 里是否已有答案（意图确认阶段的反问/拒绝会直接命中），没有就组装 Prompt、调用 LLM 生成（支持流式）、把答案写入 MongoDB 历史，最后推 final 事件并附带图片 URL，触发前端渲染。每一步独立可测，写历史失败不影响主链路。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · Prompt 组装与上下文预算</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">把重排文档、历史对话、商品名按格式拼进模板，并用 MAX_CONTEXT_CHARS=12000 统一限长，防止 Token 溢出。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">给大模型「备菜」：从排好序的文档里挑菜（每条带编号、来源、得分、标题标签），一边挑一边算字数，超了预算就停；历史对话同样参与预算分配，防止把大模型「撑死」。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像模板字符串渲染 + 长度限制：把数据格式化成带元数据的文本块；也像请求体大小限制（如 body 上限 10MB），超限截断。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_answer_output.py</span> step_2_construct_prompt；模板 <span class="path">prompts/answer_out.prompt</span>（含【参考内容】【历史对话】【相关商品/实体】【用户问题】占位符）。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>docs, used = [], 0
+for i, doc in enumerate(reranked_docs, start=1):
+    text = (doc.get("text") or "").strip()
+    meta = f"[{i}] [{source}] [chunk_id={chunk_id}] [score={score:.4f}] [title={title}]"
+    block = meta + "\n" + text
+    if used + len(block) > MAX_CONTEXT_CHARS:   # 预算控制
+        break
+    docs.append(block)
+    used += len(block) + 2
+context_str = "\n\n".join(docs) if docs else "无参考内容"</code></pre>为什么这样写：给每条文档带「溯源标签」（第几条/来源/得分/标题），大模型引用时能说清出处；预算共享避免单方面撑爆。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不限长直接拼接：文档多时 Prompt 超出模型上下文窗口，调用直接报错；或历史记录挤占文档空间，参考内容被截断，答案质量崩。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">预算按「每个请求自己的状态」计算，互不共享；但要注意全局并发时 LLM 服务的限流。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">12000 是字符数不是 token 数，不同语言 token 密度不同（中文约 1 字≈1 token）—— 字符预算偏保守安全；极端长历史时历史可能被完全截断（used 已满）。（[待验证] 可按模型实际窗口调优）</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">构造超长 reranked_docs + 历史，观察 context_str 长度被限制在 ~12000 内，且文档优先、历史次之被截断。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「答案生成前先组装 Prompt：把重排文档按『编号+来源+得分+标题』格式化成带溯源标签的文本块，和格式化后的历史对话、商品名一起填进模板。全程用 MAX_CONTEXT_CHARS=12000 统一限长，文档优先、历史次之，防止超出模型上下文窗口。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · SSE 流式输出</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">SSE（Server-Sent Events）通过 session_id 队列把 LLM 生成的增量逐字推给前端，事件类型：ready / progress / delta / final / error。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">大模型像打字员一个字一个字地「说」，SSE 像广播台：每说一个字就广播一次，前端收到一个字渲染一个字，用户看到答案「打出来」的效果，而不是干等十几秒。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">前端用 EventSource 建立 SSE 连接，监听事件流；和 WebSocket 的区别是 SSE 单向（服务端→客户端）、自动重连、基于 HTTP，适合「推送答案」这种场景。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/utils/sse_utils.py</span>：SSEEvent 常量、_session_stream 队列字典、push_to_session、sse_generator；节点里 llm.stream() 每个增量 push delta。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>class SSEEvent:
+    READY="ready"; PROGRESS="progress"; DELTA="delta"
+    FINAL="final"; ERROR="error"; CLOSE="__close__"
+
+# 服务端：流式生成中逐字推送
+if is_stream:
+    for chunk in llm.stream(prompt):
+        delta = getattr(chunk, "content", "") or ""
+        if delta:
+            push_to_session(session_id, SSEEvent.DELTA, {"delta": delta})
+# 前端：EventSource 监听
+const es = new EventSource(`/api/chat/stream?session_id=${sid}`);
+es.addEventListener("delta", e => appendText(JSON.parse(e.data).delta));
+es.addEventListener("final", e => renderImages(JSON.parse(e.data).image_urls));</code></pre>为什么这样写：会话队列（session_id → Queue）天然隔离多用户；SSE 格式 `event: xxx\ndata: json\n\n` 由 _sse_pack 统一打包。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不用流式，等 LLM 全部生成完再返回：十几秒的空白等待，前端只能转圈，体验差；超长答案还可能触发网关超时。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a、b 两个用户同时提问：各自 session_id 对应各自队列，push 按 session 路由，互不串流；队列消费由各自的 SSE 生成器完成。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">SSE 单向推送，前端不能通过它发消息（发消息走普通 POST）；连接断开时队列无人消费可能堆积 —— 项目有 remove_sse_queue 清理。LLM 流式异常时推 error 事件告知前端。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">浏览器打开流式接口，用 DevTools Network 观察 SSE 事件流，逐个出现 ready → progress → delta×N → final。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「答案流式输出用 SSE 实现：FastAPI 端维护 session_id → Queue 的映射，LLM 流式生成时每个增量都 push 到该会话队列，sse_generator 把队列内容按 `event: xxx` 格式推给前端 EventSource。事件分 ready/progress/delta/final/error。相比 WebSocket，SSE 单向、基于 HTTP、自动重连，正合适做『服务端→客户端』的答案推送。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · 图片「双保险」提取</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">最终展示的图片 URL 不是 LLM 生成的，而是代码从源文档里用正则提取的 —— 因为大模型不可控、源数据最准。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">Prompt 里让大模型输出【图片】区块，只是让它「在文字里提到图」；真正给前端渲染的图片，是代码自己去排好序的文档里扒出来的真实存在的图片链接。双保险：一个引导、一个兜底。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端不信任用户输入，最终渲染前用 schema 校验/白名单过滤一遍；也像「服务端返回数据 → 前端再 sanitize」的双保险。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_answer_output.py</span> _extract_images_from_docs：正则 `!\[.*?\]\((.*?)\)` 匹配 Markdown 图片 + 检查 url 字段后缀（png/jpg/jpeg/gif/webp/bmp/svg）+ seen 去重。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>md_img_pattern = re.compile(r'!\[.*?\]\((.*?)\)')
+for doc in docs:
+    url = (doc.get("url") or "").strip()
+    if url.lower().endswith(('.png','.jpg','.jpeg','.gif','.webp','.bmp','.svg')):
+        if url not in seen: images.append(url); seen.add(url)
+    for m in md_img_pattern.findall(doc.get("text") or ""):
+        if m not in seen: images.append(m); seen.add(m)</code></pre>为什么这样写：LLM 可能编造 URL 或格式错误；从源文档提取保证「这图真的存在于参考内容里」。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">直接解析 LLM 生成的【图片】区块：模型可能给出一个不存在的 URL，前端展示裂图，用户看到的是「坏掉的图」。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">图片提取是纯正则内存操作，无共享状态，并发安全。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">只认标准 Markdown 图片语法与常见图片后缀；文档里用 HTML `<img>` 或非常见后缀（如 .avif）会漏提取 —— 属于已知边界，可扩展正则。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">本地测试 mock 含 `![图](http://.../panel.jpg)` 的文档，检查提取结果是否只包含真实 URL 且无重复。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「图片展示用了双保险：Prompt 里要求 LLM 输出【图片】区块是为了让文字能提到图，但最终给前端渲染的 URL 是代码用正则从排好序的源文档里提取的真实图片链接（Markdown 语法 + url 字段后缀校验 + 去重）。因为大模型不可控、源数据最准，前端永远只拿到真实存在的图。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 E · MongoDB 历史写入</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">把本轮问答（角色、答案、商品名、图片）写入 MongoDB，供多轮对话上下文与历史查询使用。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">每次问答都「记账」：谁问了什么、AI 答了什么、涉及哪些商品、附了哪些图。下次用户说「这个多少钱」时，系统翻历史账本才知道「这个」指什么。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像把聊天记录存到 localStorage/数据库，刷新页面还能接着聊；也像埋点/操作日志，可回溯。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/clients/mongo_history_utils.py</span>：save_chat_message、get_recent_messages、update_message_item_names；节点里 step_4_write_history 调用 save_chat_message(session_id, role="assistant", text=answer, item_names, image_urls)。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>def step_4_write_history(state, image_urls=None):
+    if state.get("answer"):
+        save_chat_message(
+            session_id=state["session_id"],
+            role="assistant",
+            text=state["answer"],
+            rewritten_query="",
+            item_names=state.get("item_names") or [],
+            image_urls=image_urls,
+            message_id=None)
+    return state  # 写失败也不中断（异常被捕获记日志）</code></pre>为什么这样写：历史是「多轮对话的记忆」；失败降级保证答案已经生成完毕，不因记账失败丢失。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不存历史：多轮对话中「那温度呢」永远无法关联到上一轮的「HAK 180 烫金机」，意图确认阶段提取商品名失败。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">并发写入 MongoDB 由数据库自身保证；同一会话的消息按时间有序写入，读取时按时间排序还原上下文。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">历史无限增长会让 get_recent_messages 越来越慢 —— 项目通常只取最近 N 条作为上下文，不是全量历史。长会话的截断策略是 [待验证] 的优化点。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">完成一轮问答后查 MongoDB 对应 session 的文档，确认 role/text/item_names/image_urls 字段已落库。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「问答结束后把本轮答案、商品名、图片 URL 写入 MongoDB，作为多轮对话的记忆。下次提问时意图确认节点会读取最近历史，结合上下文提取商品名和改写问题。写历史失败会降级——只记日志不中断主链路，因为答案已经生成了。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>答案节点哪一步能「直接返回已有答案」？什么场景会命中？</li>
+      <li>MAX_CONTEXT_CHARS 超限时，文档和历史谁先被截断？为什么？</li>
+      <li>SSE 和 WebSocket 的本质区别是什么？为什么这里选 SSE？</li>
+      <li>图片 URL 为什么不直接信 LLM 的输出？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：观察一次真实流式问答</h3>
+    <ul>
+      <li><b>输入</b>：启动检索 Web 服务，浏览器打开流式问答页面</li>
+      <li><b>操作</b>：① DevTools Network 找到 SSE 请求；② 观察事件流类型与顺序（ready → progress → delta… → final）；③ 查看 final 事件里的 image_urls 字段</li>
+      <li><b>预期结果</b>：能看到 delta 事件逐个推送增量文字，final 事件携带完整答案和图片列表</li>
+      <li><b>失败先查</b>：若看不到 delta，检查 is_stream 是否传递；若 final 无图片，检查 reranked_docs 里是否含 Markdown 图片</li>
+      <li><b>注意</b>：需 LLM/Milvus/MongoDB 环境就绪；也可只跑 node_answer_output 的本地测试观察日志</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">讲一遍「查缓存 → 备菜限长 → 打字机广播 → 记账 → 收尾通知」的答案生成故事，重点讲清每一步的防错设计。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（复习题至少对 3 道）</li>
+      <li>能默写答案节点 5 阶段与 SSE 5 事件</li>
+      <li>能解释上下文预算的分配策略（文档优先、历史次之）</li>
+      <li>能说明图片双保险的设计动机</li>
+      <li>能说出至少一个边界（如历史截断策略、图片后缀覆盖不全）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 08 检索Web服务端搭建 · 09 检索节点 7；代码已对照 app/query_process/agent/nodes/node_answer_output.py、app/utils/sse_utils.py 核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】动态 TopK 断崖截断用的两个阈值是？",opts:["绝对≥0.25 或 相对≥50%","分数>0.85 或 <0.6","前5名固定保留","绝对≥0.5 或 相对≥25%"],ans:3,exp:"RERANK_GAP_ABS=0.5、RERANK_GAP_RATIO=0.25，任一触发即截断。"},{no:2,q:"【复习】RRF 核心公式是？",opts:["weight * rank/k","k/(rank+weight)","weight * 1/(k+rank)","1/(k*rank)"],ans:2,exp:"score += weight * (1.0/(k+rank))，rank 从 1 开始，k=60。"},{no:3,q:"答案节点第一步 step_1_check_answer 的作用是？",opts:["校验 prompt 长度","检查 state 里是否已有 answer，有则直接推送","调用 LLM","写历史"],ans:1,exp:"意图确认阶段的反问/拒绝句会作为 answer 存在，此时直接推送输出，不再重新生成。"},{no:4,q:"MAX_CONTEXT_CHARS=12000 控制的是什么？",opts:["组装进 Prompt 的文档+历史总字符预算","数据库行数","并发连接数","图片数量"],ans:0,exp:"文档、历史共享 12000 字符预算，文档优先、历史次之，超限截断，防 Token 溢出。"},{no:5,q:"SSE 事件中哪个用于推送 LLM 逐字增量？",opts:["ready","progress","final","delta"],ans:3,exp:"delta 是流式增量；ready 是连接建立，progress 是节点进度，final 是最终答案+图片。"},{no:6,q:"【复习】Rerank 与 RRF 的本质区别是？",opts:["RRF 用模型，Rerank 用公式","两者一样","RRF 只看排名，Rerank 模型精读内容打分","Rerank 更快"],ans:2,exp:"RRF 轻量融合排名；Rerank 交叉编码模型逐对精读『问题×文档』，更准但更慢更贵。"},{no:7,q:"图片『双保险』提取的最终图片来源是？",opts:["LLM 生成的【图片】区块","代码从源文档正则提取的真实 URL","用户上传","前端缓存"],ans:1,exp:"最终展示的图是代码从 reranked_docs 里提取的真实 URL（Markdown 语法+url 后缀+去重），不信 LLM 输出。"},{no:8,q:"写 MongoDB 历史失败时项目怎么处理？",opts:["捕获异常记日志，不影响主链路","抛异常中断","重试三次","回滚答案"],ans:0,exp:"答案已生成完毕，记账失败只降级不阻塞。这是『非关键路径降级』的设计。"},{no:9,q:"【复习】意图确认规则 A（唯一高置信 >0.85）的处理是？",opts:["进候选反问","拒绝回答","随机选","直接确认该商品"],ans:3,exp:"唯一高置信直接确认；多高置信走 B，中置信走 C 反问，低分走 D 拒绝。"},{no:10,q:"SSE 相比 WebSocket 在本项目的优势是？",opts:["双向通信","传输二进制","单向服务端推送、基于 HTTP、自动重连，场景简单","延迟更低"],ans:2,exp:"答案推送是单向『服务端→客户端』场景，SSE 更简单、自动重连、无需额外协议，够用且稳。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

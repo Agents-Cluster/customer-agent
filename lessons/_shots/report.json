@@ -1,0 +1,217 @@
+{
+  "src": "lesson-07-answer-sse.html",
+  "url": "file:///Users/lemon/Downloads/PythonProject16/lessons/lesson-07-answer-sse.html",
+  "outdir": "/Users/lemon/Downloads/PythonProject16/lessons/_shots",
+  "include": [
+    "lint",
+    "screenshots",
+    "structure"
+  ],
+  "shots": {
+    "desktop": {
+      "screenshot": "/Users/lemon/Downloads/PythonProject16/lessons/_shots/lesson-07-answer-sse_desktop.png",
+      "screenshotBytes": 148919,
+      "truncated": true,
+      "truncatedHint": "chrome CLI --screenshot 兜底：只截首屏，长页尾部未覆盖。",
+      "screenshotHint": "CDP 挂了，走 --screenshot 兜底：只有视口一屏，不是完整长页，也未按 --format / --max-width 转码降宽、未分片。图读不动时就只按 lint 字段改代码，别把没看过的截图当成看过了。",
+      "consoleErrors": null,
+      "consoleWarnings": null,
+      "resourceErrors": null,
+      "horizontalOverflow": null,
+      "structure": null,
+      "reportDegraded": true,
+      "reportHint": "chrome CLI 走 --screenshot 兜底路径（CDP 挂了）：拿不到 DOM，lint 与 structure 字段为 null。如需完整报告，请装 playwright：`pip install playwright && playwright install chromium`。"
+    },
+    "mobile": {
+      "screenshot": "/Users/lemon/Downloads/PythonProject16/lessons/_shots/lesson-07-answer-sse_mobile.png",
+      "screenshotBytes": 101960,
+      "truncated": true,
+      "truncatedHint": "chrome CLI --screenshot 兜底：只截首屏，长页尾部未覆盖。",
+      "screenshotHint": "CDP 挂了，走 --screenshot 兜底：只有视口一屏，不是完整长页，也未按 --format / --max-width 转码降宽、未分片。图读不动时就只按 lint 字段改代码，别把没看过的截图当成看过了。",
+      "consoleErrors": null,
+      "consoleWarnings": null,
+      "resourceErrors": null,
+      "horizontalOverflow": null,
+      "structure": null,
+      "reportDegraded": true,
+      "reportHint": "chrome CLI 走 --screenshot 兜底路径（CDP 挂了）：拿不到 DOM，lint 与 structure 字段为 null。如需完整报告，请装 playwright：`pip install playwright && playwright install chromium`。"
+    }
+  },
+  "engine": "chrome_cli",
+  "chromiumExec": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "engineDegraded": true,
+  "engineDegradedReason": "playwright 未装",
+  "elapsedSec": 19.17,
+  "schemaVersion": 2,
+  "status": "partial",
+  "engineInfo": {
+    "name": "chrome_cli",
+    "degraded": true,
+    "degradedReasons": [
+      "playwright 未装"
+    ]
+  },
+  "input": {
+    "original": "lesson-07-answer-sse.html",
+    "resolvedPath": "/Users/lemon/Downloads/PythonProject16/lessons/lesson-07-answer-sse.html",
+    "baseUrl": "file:///Users/lemon/Downloads/PythonProject16/lessons/lesson-07-answer-sse.html",
+    "protocol": "file",
+    "cwd": "/Users/lemon/Downloads/PythonProject16/lessons",
+    "mediaMode": {
+      "reducedMotion": true
+    }
+  },
+  "artifacts": {
+    "screenshots": [
+      {
+        "viewport": "desktop",
+        "path": "/Users/lemon/Downloads/PythonProject16/lessons/_shots/lesson-07-answer-sse_desktop.png",
+        "size": 148919,
+        "visualCoverage": {
+          "complete": false,
+          "reason": "chrome CLI --screenshot 兜底：只截首屏，长页尾部未覆盖。"
+        }
+      },
+      {
+        "viewport": "mobile",
+        "path": "/Users/lemon/Downloads/PythonProject16/lessons/_shots/lesson-07-answer-sse_mobile.png",
+        "size": 101960,
+        "visualCoverage": {
+          "complete": false,
+          "reason": "chrome CLI --screenshot 兜底：只截首屏，长页尾部未覆盖。"
+        }
+      }
+    ]
+  },
+  "summary": {
+    "blocker": 0,
+    "error": 0,
+    "warning": 0,
+    "info": 0
+  },
+  "findings": [],
+  "notRunChecks": [
+    {
+      "check": "visualCoverage",
+      "reason": "capture_incomplete_or_truncated"
+    },
+    {
+      "ruleId": "consoleErrors",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "consoleWarnings",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "resourceErrors",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "horizontalOverflow",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "misalignedBlocks",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "unevenColumns",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "pseudoOverflow",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "orphanCardsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "squeezedTableColumns",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "fakeDisclosureBulletsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "edgeHuggingTextWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "fixedWidthElementsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "timelineAlignmentIssues",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "timelineBrokenAxis",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "timelineDeadDotStyle",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "chartBadValues",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "chartHtmlInCanvasText",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "responsiveChartIssues",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "duplicateImagesWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "stretchedImages",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "localImageWarnings",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "publishBrokenAssets",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "unsafeHrefRefsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "slopFontsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "emojiUsageWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "mobileFontIssues",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "textContrastIssues",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "invisibleAnimationsWarning",
+      "reason": "dom_report_unavailable"
+    },
+    {
+      "ruleId": "deadButtons",
+      "reason": "dom_report_unavailable"
+    }
+  ],
+  "prioritizedActions": [],
+  "reportPath": "/Users/lemon/Downloads/PythonProject16/lessons/_shots/report.json"
+}

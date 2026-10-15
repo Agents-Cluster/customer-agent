@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 06 RRF 融合与 Rerank 重排</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 06</div>
+  <h1>RRF 融合与 Rerank 重排</h1>
+  <div class="sub">node_rrf（倒数排名融合）→ node_rerank（模型精排 + 动态 TopK）</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 90 分钟</span><span class="tag">含 10 道 quiz（4 道复习）</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>多路召回的结果怎么融合成一个有序列表？RRF 公式怎么理解？</li><li>Rerank 模型如何精读打分？动态 TopK「断崖截断」是什么？</li><li>为什么有了 RRF 还要 Rerank？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 35 分钟 · 代码走读 30 分钟 · 动手 20 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能写出 RRF 核心公式 `score += weight * 1/(k+rank)` 并解释每个变量</li>
+      <li>能解释 k=60 的作用（平滑排名影响、防止第 1 名垄断）</li>
+      <li>能说出 Rerank 与 RRF 的本质区别（公式 vs 模型精读）</li>
+      <li>能解释动态 TopK 的断崖截断逻辑（gap_ratio=0.25 / gap_abs=0.5 / max=10 / min=1）</li>
+      <li>能 30 秒回答「RRF 和 Rerank 各解决什么问题」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（10 道，含 4 道旧课复习题）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">覆盖 Lesson 1-5 与本节课主题。点击选项查看解释。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · RRF：倒数排名融合</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">RRF 把多路召回的排名按「倒数 + 权重」累加成统一分数，自动去重、重排，输出 TopN。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">多路搜索结果谁更靠前、谁在更多路里出现，谁的分就高。像投票：每路按名次给分（第 1 名得票多、第 2 名少一点），再按各路权重加权，最后总票数排序。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像前端把多个接口的搜索结果「按来源排名合并」：每个接口给一份排序，前端用 RRF 算出综合排名 —— 不做复杂语义判断，纯排名运算。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_rrf.py</span>：reciprocal_rank_fusion(source_weights, k=60, max_results=10)；输入 embedding_chunks + hyde_embedding_chunks（权重各 1.0），输出 rrf_chunks。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>for docs, weight in source_weights:          # 每路
+    for rank, item in enumerate(docs, start=1):  # 排名从 1 开始
+        chunk_id = item.get("chunk_id") or item.get("id")
+        score_map[chunk_id] = score_map.get(chunk_id, 0.0) \
+                              + weight * (1.0 / (k + rank))   # 核心公式
+        chunk_map.setdefault(chunk_id, item)  # 去重：保留首次出现
+merged.sort(key=lambda x: x[1], reverse=True)  # 按总分降序
+merged = merged[:max_results]                  # 截断 Top10</code></pre>为什么这样写：用 chunk_id 做跨来源匹配（同一切片出现在多路则累加），公式只依赖排名不依赖分数，无需训练。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不用 RRF 直接拼接：同一文档在向量路和 HyDE 路各出现一次，列表里重复两条；且无法体现「多路都认可」的文档更可信。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a、b 两个请求的 rrf 是各自 state 上独立计算，无共享可变状态，天然并发安全。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">RRF 只看排名不看内容：两路都排名靠前的文档分高，但排名高≠真相关（比如某路整体检索质量差，靠前文档其实是垃圾）。所以 RRF 之后还需要模型级 Rerank 精读。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">跑 node_rrf 的本地测试（mock embedding + hyde），打印融合前后数量，确认重复 chunk_id 被合并且 Top10 截断生效。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「RRF 是倒数排名融合：对每一路检索结果，按公式 score += weight * 1/(k+rank) 累加每个文档的得分，k=60 平滑排名影响。同一文档在多路都排名靠前，得分就高；用 chunk_id 去重，最后截断 Top10。它无需训练、只依赖排名，是融合阶段的轻量方案。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · k 值的作用（超参数）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">k 是平滑系数：让排名对得分的影响更温和，避免第 1 名垄断总分、也让排名靠后的文档仍有贡献。 <span class="badge b-gen">[通用知识]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">没有 k 时第 1 名得分是第 2 名的两倍，第一名的意见直接压过所有人；加了 k=60，第 1 名 ≈0.0164、第 2 名 ≈0.0162，差距小到必须「多路都认可」才能赢。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像评分系统里的「阻尼系数」：让极端分（全 5 星 vs 全 1 星）不要太悬殊；也像 CSS 的缓动函数，把陡峭曲线拉平。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_rrf.py</span>：`reciprocal_rank_fusion(source_weights, k=60, max_results=10)`，k 为默认参数。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 直观对比（同一文档排第 1 和第 100 的得分差距）
+# 无 k：1/1 = 1.0   vs  1/100 = 0.01   （差 100 倍）
+# 有 k=60：1/61 ≈ 0.0164 vs 1/160 ≈ 0.00625（差 ~2.6 倍）
+score = weight * (1.0 / (k + rank))</code></pre>为什么这样写：k 越大排名差异越不敏感，越看重「被多少路召回」；k 越小排名越重要。60 是行业常用默认值。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">k 设太小（如 k=1）：第 1 名 0.5、第 2 名 0.33，单路第 1 名主导，融合名存实亡。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">k 是常量参数，无并发问题；多路并行检索完成后统一传入。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">k 没有「最优解」，依赖数据集和任务；项目用 60 是经验默认值，需要 A/B 测试调优（属于 [待验证] 的可优化点）。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">用同一组 mock 数据分别跑 k=1、k=60、k=200，对比最终排序差异，理解 k 的敏感性。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「k 是 RRF 的平滑超参数，默认 60。它让排名对分数的影响温和化：没有 k 时第一名得分是第二名的两倍、会垄断结果；加了 k 后前几名分数接近，必须多路都认可才能得高分，同时排名靠后的文档也保留合理贡献。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · Rerank：模型精读打分</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">Rerank 用专门的交叉编码模型（BGE-reranker-large）逐对精读「问题 × 文档」并打相关性分，弥补 RRF 只看排名的局限。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">RRF 是「看名次算分」，Rerank 是「逐字读题再打分」。模型把问题和一个候选文档一起读，判断「这俩到底相关吗」，给出 0-1 之间的分。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像先按关键词粗筛（召回），再人工精读每篇判断是否采纳（精排）。对应前端「搜索结果 → 人工确认」的两段式漏斗。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_rerank.py</span>；模型封装 <span class="path">app/lm/reranker_utils.py</span>（FlagReranker 单例 get_reranker_model）；配置 <span class="path">app/conf/reranker_config.py</span>；三个子步骤 step_1_merge_docs / step_2_rerank_docs / step_3_topk。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 问题与每个文档组成 (query, passage) 对，批量打分
+question = state.get("rewritten_query") or state.get("original_query")
+sentence_pairs = [[question, t] for t in texts]
+scores = reranker.compute_score(sentence_pairs)   # 每对得一个分
+scored_docs = [(doc, score) for doc, score in zip(doc_items, scores)]
+scored_docs.sort(key=lambda x: x["score"], reverse=True)  # 降序精排</code></pre>为什么这样写：交叉编码让模型同时看到问题和文档（而非各自独立编码），相关性判断更准。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">只用 RRF 的排名结果直接送 LLM：RRF 排在前面但内容其实是无关的高频词文档，LLM 会被误导；Rerank 能把这种「排名高但真不相关」的文档筛下去。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">Rerank 是模型推理，吃 CPU/GPU：候选多时逐个打分是串行批量；多个请求并发会争抢算力，所以候选数先被 RRF 截到 Top10，控制推理开销。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">Rerank 模型打分无固定取值范围，只看相对大小排序；且模型可能对超长文本处理不稳定，所以打分前对文本做了标准化（text 字段优先 content/snippet）。模型推理失败时项目做了降级：返回原顺序、分数置 0，保证流程不断。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">跑 node_rerank 本地测试（mock 含相关与无关文档），观察相关文档分数明显高于无关文档，Top1 符合预期。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「Rerank 用 BGE-reranker-large 交叉编码模型对『问题 × 候选文档』逐对精读打分。它和 RRF 的本质区别是：RRF 只看排名做轻量融合，Rerank 真正理解内容判断相关性。RRF 先融合去重到 Top10，Rerank 再精排筛掉『排名高但真不相关』的噪音，最后动态截断。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 D · 动态 TopK：断崖截断</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">不机械取前 N 条，而是检测相邻分数的「断崖落差」，落差过大就在断崖处截断，只保留质量明显高的那批。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">分数 95、93、89、77、71 —— 前三名明显领先后两名（77 之后是断崖），就只取前三，别让 71 分这种「凑数文档」混进答案。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像「及格线动态划定」：不是固定 60 分及格，而是看分数分布，明显的分数断层就是及格线；也像价格锚点 / 聚类找拐点。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/nodes/node_rerank.py</span> step_3_topk；常量 RERANK_MAX_TOPK=10、RERANK_MIN_TOPK=1、RERANK_GAP_RATIO=0.25、RERANK_GAP_ABS=0.5。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>max_topk = min(RERANK_MAX_TOPK, len(scored_docs))   # 上限 10
+min_topk = RERANK_MIN_TOPK                          # 下限 1
+topk = max_topk
+# 从 min_topk 之后开始检测相邻分差（前 min_topk 强制保留）
+for i in range(min_topk - 1, max_topk - 1):
+    s1, s2 = scored_docs[i]["score"], scored_docs[i+1]["score"]
+    gap = s1 - s2
+    rel = gap / (abs(s1) + 1e-6)                    # 相对落差
+    if gap >= RERANK_GAP_ABS or rel >= RERANK_GAP_RATIO:
+        topk = i + 1                                # 断崖处截断
+        break
+topk_docs = scored_docs[:topk]</code></pre>为什么这样写：同时用绝对阈值（0.5）和相对阈值（25%）判断「断崖」，避免固定 TopN 放低分文档进来；前 min_topk 强制保留防止空结果。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">固定 Top5：第 5 名 71 分和第 4 名 77 分差距不大时还好，但若第 5 名是 30 分（断崖），固定 Top5 会把 30 分的垃圾文档送进 Prompt，污染答案。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">TopK 计算是纯列表运算，无共享状态，并发安全。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">断崖阈值是经验值（0.25/0.5），可能误判：分数整体都很接近时无断崖 → 取满 10 条；分数整体都很低时仍至少保留 1 条（min_topk）—— 兜底但不保证质量。属于 [待验证] 可调参数。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">构造含断崖的 mock 分数（如 0.95/0.93/0.89/0.77/0.71），跑 step_3_topk 观察是否在 index=2 处截断（取前 3）。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「动态 TopK 不做固定截断：按 Rerank 分数降序后，从最小保留数开始检测相邻分数的断崖（绝对落差 ≥0.5 或相对落差 ≥25%），出现断崖就在那里截断，最多 10 条、至少 1 条。这样低分垃圾文档不会混进 Prompt，答案质量更稳。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 E · 从多路到精排：两段式漏斗</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">「多路召回 → RRF 融合 → Rerank 精排 → 动态截断」构成标准两段式漏斗：召回保覆盖率，排序保精度。 <span class="badge b-gen">[通用知识]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">先广撒网（召回），再精挑细选（排序），最后只把最好的几份资料端上桌（TopK）给大模型。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">像商品列表页：先按类目粗筛出 100 个（召回），再按综合分排序（RRF），再精排推荐算法排序（Rerank），最后只展示前 10 个（TopK）。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v"><span class="path">app/query_process/agent/main_graph.py</span>：node_join → node_rrf → node_rerank → node_answer_output 的顺序边。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code>builder.add_edge("node_join", "node_rrf")        # 融合
+builder.add_edge("node_rrf", "node_rerank")      # 精排
+builder.add_edge("node_rerank", "node_answer_output")  # 生成</code></pre>为什么这样写：把「召回量」和「精度」两个目标拆到不同阶段，每阶段可独立优化（加一路召回 / 换重排模型）。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">召回直接进 Prompt：10 路结果全塞进上下文，Token 爆掉、噪音淹没真相关文档，答案质量崩。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">漏斗各阶段是串行依赖（融合需等全部召回），但不同用户的漏斗可并行；瓶颈通常在 Rerank 算力。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">漏斗的最终输出上限是 10 条：如果知识库里相关文档超过 10 条，后面会被截掉；如果召回本身漏了（召回率不足），再好的排序也救不回来 —— 召回与排序是乘法关系。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">跟踪一个真实问题的 rrf_chunks 数量（应 ≤10）与 reranked_docs 数量（≤10），确认漏斗逐步收敛。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「我把检索设计成两段式漏斗：召回阶段广撒网（向量/HyDE/Web/图谱四路并行），保证覆盖率；排序阶段先用 RRF 按排名融合去重，再用 Rerank 模型精读打分，最后动态 TopK 截断。召回和排序是乘法关系，任何一段短板都会拉低最终答案质量。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答</h3>
+    <ol>
+      <li>写出 RRF 核心公式，并说明 rank、weight、k 各自的含义。</li>
+      <li>k=60 时第 1 名和第 2 名的得分差大约是多少？说明了什么？</li>
+      <li>为什么有了 RRF 还需要 Rerank？</li>
+      <li>动态 TopK 的断崖条件是哪两个？前 min_topk 条为什么强制保留？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：手算一次 RRF + 断崖截断</h3>
+    <ul>
+      <li><b>输入</b>：两路 mock 结果 —— 路1（权重1.0）：[A, B, C]；路2（权重1.0）：[B, A, D]，k=60</li>
+      <li><b>操作</b>：① 手算 A、B、C、D 的 RRF 分（A：1/61+1/62；B：1/62+1/61；C：1/63；D：1/63）；② 排序并确认 Top3；③ 跑 node_rrf 的本地测试对照</li>
+      <li><b>预期结果</b>：A ≈ B 且都 > C=D，融合后 [A/B 或 B/A, C, D]；A、B 因为两路都出现而领先</li>
+      <li><b>失败先查</b>：若结果不同，检查 rank 是否从 1 开始（enumerate start=1）</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘</h3>
+    <p style="font-size:14px">讲一遍「投票（RRF）→ 精读（Rerank）→ 划及格线（动态 TopK）」的漏斗故事，并说明每一级在防什么错。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（复习题至少对 3 道）</li>
+      <li>能手算一组两路 RRF 的融合结果</li>
+      <li>能默写动态 TopK 四个常量（10/1/0.25/0.5）并解释各自作用</li>
+      <li>能说出 RRF 与 Rerank 的本质区别</li>
+      <li>能说出漏斗的一个边界（如召回率不足排序救不回）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 09 检索节点 5-6；代码已对照 app/query_process/agent/nodes/node_rrf.py、node_rerank.py、app/conf/reranker_config.py 核实。</footer>
+
+</div>
+<script>
+const quizData=[{no:1,q:"【复习】四路召回中负责实时/库外信息的是？",opts:["node_web_search_mcp","node_search_embedding","node_search_embedding_hyde","node_query_kg"],ans:0,exp:"Web 搜索 MCP 通过联网补充实时和知识库外的信息（如最新价格）。"},{no:2,q:"【复习】意图确认规则 C（中置信）的处理是？",opts:["直接确认","进候选反问用户","拒绝","随机选"],ans:1,exp:"中置信（≥0.6 无高置信）进 options 反问用户，比硬猜安全。"},{no:3,q:"RRF 核心公式 score += ？",opts:["weight * rank/k","k/(rank+weight)","weight * 1/(k+rank)","1/(k*rank)"],ans:2,exp:"核心公式是 score += weight * (1.0/(k+rank))。rank 从 1 开始，k=60。"},{no:4,q:"RRF 中 k=60 的主要作用是？",opts:["提高检索速度","增加召回数量","控制权重","平滑排名影响，防止第 1 名垄断总分"],ans:3,exp:"k 平滑排名影响：无 k 时第 1 名是第 2 名 2 倍，有 k 后差距缩小，必须多路都认可才能赢。"},{no:5,q:"RRF 用什么做跨来源去重匹配？",opts:["chunk_id 或 id","content 全文","item_name","score"],ans:0,exp:"用 chunk_id（无则 id）作为唯一键：同一切片出现在多路则累加分数，chunk_map.setdefault 保留首次出现。"},{no:6,q:"【复习】HyDE 检索的核心是？",opts:["用问题原词检索","先让 LLM 生成假设答案再向量化检索","只检索标题","翻译后再检索"],ans:1,exp:"假设答案与文档表示更接近，弥合口语问题与书面文档语义鸿沟。"},{no:7,q:"Rerank 与 RRF 的本质区别是？",opts:["RRF 用模型，Rerank 用公式","两者一样","RRF 只看排名轻量融合，Rerank 模型精读内容打分","Rerank 更快"],ans:2,exp:"RRF 无需训练、只看排名；Rerank 是交叉编码模型逐对精读『问题×文档』判断相关性，更准但更慢更贵。"},{no:8,q:"动态 TopK 的断崖截断同时判断哪两个条件？",opts:["绝对落差 ≥0.25 或相对落差 ≥50%","分数 >0.6 且 <0.85","前 5 名固定保留","绝对落差 ≥0.5 或相对落差 ≥25%"],ans:3,exp:"RERANK_GAP_ABS=0.5、RERANK_GAP_RATIO=0.25，任一触发即在断崖处截断。"},{no:9,q:"【复习】Milvus 入库节点的核心幂等策略是？",opts:["先按 item_name 删旧再插入","upsert 覆盖","时间戳去重","每次清空全表"],ans:0,exp:"先删后插：同 item_name 旧数据删除后插入，重导即更新。"},{no:10,q:"为什么动态 TopK 至少保留 1 条（min_topk=1）？",opts:["为了凑数","防止断崖误判导致返回空结果","提高速度","没有原因"],ans:1,exp:"min_topk 是兜底下限：即使分数整体都很低或断崖出现在第 1 条附近，也至少保留 1 条，避免下游无内容可用。"}];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;});
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>

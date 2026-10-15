@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 01 RAG 全景与掌柜智库架构</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f8fafc; --card:#fff;
+    --brand:#0f766e; --brand-soft:#ccfbf1; --warn:#b45309; --warn-soft:#fef3c7;
+    --bad:#b91c1c; --bad-soft:#fee2e2; --ok:#15803d; --ok-soft:#dcfce7; --acc:#1d4ed8; --acc-soft:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+  header.hero{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:8px}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.08em;font-size:13px}
+  h1{font-size:28px;margin:6px 0 4px}
+  .sub{color:var(--muted);font-size:15px}
+  .tags{margin-top:10px}
+  .tag{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-size:12px;margin-right:6px}
+  section{margin-top:36px}
+  h2{font-size:20px;border-left:5px solid var(--brand);padding-left:10px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.goal-grid{grid-template-columns:1fr}}
+  .goal-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .goal-box h3{margin:0 0 8px;font-size:15px;color:var(--brand)}
+  .goal-box ul{margin:0;padding-left:18px}
+  .goal-box li{font-size:14px;margin:4px 0}
+  .badge{display:inline-block;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:600}
+  .b-proj{background:var(--brand-soft);color:var(--brand)}
+  .b-gen{background:var(--acc-soft);color:var(--acc)}
+  .b-int{background:var(--warn-soft);color:var(--warn)}
+  .b-tbd{background:#f3f4f6;color:var(--muted)}
+  .quiz{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .quiz .q{font-weight:600;margin-bottom:10px}
+  .quiz .q .no{color:var(--brand);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.correct{background:var(--ok-soft);border-color:var(--ok)}
+  .opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+  .opt .letter{display:inline-block;width:22px;font-weight:700;color:var(--muted)}
+  .explain{display:none;background:var(--bg);border-left:3px solid var(--brand);padding:10px 12px;margin-top:8px;font-size:13px;border-radius:0 6px 6px 0}
+  .explain.show{display:block}
+  .explain strong{color:var(--brand)}
+  .concept{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden;background:var(--card)}
+  .concept>h3{background:var(--bg);margin:0;padding:10px 16px;font-size:16px;border-bottom:1px solid var(--line)}
+  .c-body{padding:6px 18px 14px}
+  .elem{margin:12px 0;font-size:14px}
+  .elem .k{display:inline-block;min-width:86px;font-weight:700;color:var(--brand);font-size:13px;vertical-align:top}
+  .elem .v{display:inline-block;width:calc(100% - 96px);vertical-align:top}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;color:inherit}
+  .path{font-family:Menlo,Consolas,monospace;background:#eef2f7;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12.5px;color:#334155}
+  .task-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:12px 0}
+  .task-box h3{margin:0 0 8px;font-size:15px;color:var(--acc)}
+  .task-box ol,.task-box ul{margin:6px 0;padding-left:20px}
+  .task-box li{font-size:14px;margin:5px 0}
+  .pass{background:var(--ok-soft);border:1px solid var(--ok);border-radius:10px;padding:14px 18px}
+  .pass h3{margin:0 0 8px;color:var(--ok);font-size:16px}
+  .pass ul{margin:6px 0;padding-left:20px}
+  .pass li{font-size:14px;margin:4px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{background:var(--bg)}
+  .nav{position:sticky;top:0;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);padding:8px 0;z-index:10}
+  .nav a{color:var(--brand);text-decoration:none;font-size:13px;margin-right:14px}
+  .footer{margin-top:50px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">掌柜智库 RAG 实战 · Lesson 01</div>
+  <h1>RAG 全景与项目架构</h1>
+  <div class="sub">前端转 Agent 面试 · 基于真实项目代码走读</div>
+  <div class="tags"><span class="tag">核心课</span><span class="tag">预计 70 分钟</span><span class="tag">含 8 道 quiz</span></div>
+</header>
+
+<nav class="nav">
+  <a href="#goal">课前目标</a><a href="#quiz">间隔重复 quiz</a><a href="#concepts">概念讲解</a><a href="#tasks">课后任务</a><a href="#pass">通过标准</a>
+</nav>
+
+<section id="goal">
+  <h2>1. 课前目标</h2>
+  <div class="goal-grid">
+    <div class="goal-box"><h3>今天只解决一个主问题</h3>
+      <ul><li>RAG（Retrieval-Augmented Generation，检索增强生成）到底是什么？</li><li>掌柜智库的两条链路（导入 + 检索）如何组织？</li><li>为什么这个技术栈这样选？</li></ul>
+    </div>
+    <div class="goal-box"><h3>时间预算</h3>
+      <ul><li>讲解 30 分钟 · 代码走读 20 分钟 · 动手 15 分钟 · 复盘 5 分钟</li></ul>
+    </div>
+  </div>
+  <div class="goal-box" style="margin-top:12px"><h3>可观察的学习结果</h3>
+    <ul>
+      <li>能用一句话向面试官说清「什么是 RAG」，并指出它与纯 LLM 对话的区别</li>
+      <li>能画出掌柜智库的导入链路 7 节点与检索链路 8 节点</li>
+      <li>能在真实代码中找到两个主图文件与两个状态类</li>
+      <li>能说出技术栈里每个组件解决什么问题（LangGraph/Milvus/MinIO/MongoDB/SSE）</li>
+      <li>能用 30 秒回答「你这个项目是做什么的」</li>
+    </ul>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2>2. 间隔重复 quiz（8 道）</h2>
+  <p style="font-size:13.5px;color:var(--muted)">点击选项查看对错与解释。今日为第一课，题目全部来自本课；后续课程将混合旧主题抽题。</p>
+  <div id="quizBox"></div>
+</section>
+
+<section id="concepts">
+  <h2>3. 概念讲解</h2>
+
+  <div class="concept"><h3>概念 A · RAG（检索增强生成）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">RAG = 先检索相关资料，再把资料塞进 Prompt，让大模型基于资料回答，从而减少幻觉、答案可溯源。 <span class="badge b-gen">[通用知识]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">以前问大模型问题，它只能靠「背过的知识」回答，超出训练范围就瞎编。RAG 相当于在它回答前先给它一本「指定参考书」，告诉它：只许照着这本书答。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">普通 LLM 像没有状态管理的组件，RAG 像给它挂了一个「缓存 + 数据层」：先查数据再渲染。或者类比搜索引擎：你不是直接让 AI 凭记忆写，而是「搜索 → 拿到网页 → 让 AI 读网页后总结」。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v">导入链路把知识写进 Milvus（<span class="path">app/import_process/agent/main_graph.py</span>），检索链路先从 Milvus 取回资料再交给 LLM（<span class="path">app/query_process/agent/main_graph.py</span>）。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 检索链路的最后一环：把检索结果拼进 Prompt 再问 LLM
+prompt = load_prompt("answer_out", context=context_str,
+                     history=history_str, item_names=item_names_str,
+                     question=question)
+answer = llm.invoke(prompt)  # LLM 只基于 context 作答</code></pre>为什么这样写：把「检索」（context）和「生成」（answer）解耦，检索质量提升时生成质量自动提升。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">不用 RAG：让 LLM 直接回答「HAK 180 烫金机怎么操作」，模型没学过这个型号，会编造操作步骤 —— 就是幻觉。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">a、b、c 三个用户同时问不同商品：每个请求独立走自己的检索链路，状态（QueryGraphState）按 session_id 隔离，互不污染。这是 LangGraph 每请求一个 state 实例保证的。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">RAG 不是万能的：如果知识库本身没资料（如全新未导入的产品），检索返回空，答案质量取决于 LLM 的兜底 prompt；如果切片质量差，检索结果再准也答不好 —— RAG 的天花板是「检索质量 × 生成质量」。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">打开导入主图注释、检索主图注释，数一数每个链路有几个节点；或直接问项目一个库里没有的问题，观察回答是否老实承认不知道。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「RAG 是检索增强生成：先通过向量检索从知识库里取回和问题相关的文档，再把这些文档作为参考内容拼进 Prompt，让大模型基于它们生成答案。它能解决大模型幻觉和知识时效问题。我们项目里导入链路负责把文档切片、向量化存进 Milvus，检索链路负责召回、排序、生成。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 B · 掌柜智库项目架构（双链路）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">项目拆成「知识库构建（导入）」与「智能问答（检索）」两条 LangGraph 工作流，中间用 Milvus 向量库连接。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">导入链路像「出版社编辑流程」：把 PDF/MD 文档拆成小块、给每块生成向量指纹、存进数据库。检索链路像「客服接待」：听懂问题 → 去库里找最相关的几块资料 → 组织成答案回复。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v">导入 = 构建期（build）：源码 → 转译 → 分包 → 产出静态资源（assets）。检索 = 运行期（runtime）：路由 → 数据请求 → 渲染 → 响应。两条链路完全解耦，就像 CI/CD 构建和线上服务是两个独立系统。</span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v">导入主图：<span class="path">app/import_process/agent/main_graph.py</span>；检索主图：<span class="path">app/query_process/agent/main_graph.py</span>；状态：<span class="path">app/import_process/agent/state.py</span> 与 <span class="path">app/query_process/agent/state.py</span>。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># 检索主图（节选）——可见「分叉 + 合并」的多路召回结构
+builder.add_node("node_multi_search", lambda x: x)  # 虚拟分叉点
+builder.add_node("node_search_embedding", node_search_embedding)
+builder.add_node("node_web_search_mcp", node_web_search_mcp)
+builder.add_node("node_join", lambda x: {})          # 虚拟合并点
+builder.add_edge("node_multi_search", "node_search_embedding")
+builder.add_edge("node_multi_search", "node_web_search_mcp")
+builder.add_edge("node_search_embedding", "node_join")
+builder.add_edge("node_web_search_mcp", "node_join")</code></pre>为什么这样写：虚拟节点只做「分叉/合并中转」，无业务逻辑，让四路搜索并行执行再统一汇合。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">如果只有检索链路没有导入链路：库里永远是空的，检索永远空手而归。两条链路缺一不可。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">一个用户在导入 10 个 PDF 的同时，另一个用户在检索提问：两者各走各的主图、各用各的 session_id/task_id，互不干扰；导入结果写入 Milvus 后，检索链路立即可用（读写分离的自然效果）。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">导入和检索共用同一套 Milvus 集合时，导入中（数据未完全写入）检索可能读到半成品 —— 项目用 task 状态（running/done）标记导入进度，前端据此提示「导入中，稍后再试」。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">分别打开两个 main_graph.py，用「数节点」的方式核对：导入 7 个业务节点、检索 8 个节点（含 2 个虚拟节点）。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「掌柜智库是一个企业级私有知识库问答系统。它分两条链路：导入链路把 PDF/MD 文档切片、向量化存入 Milvus；检索链路对用户问题做意图确认、多路召回、RRF 融合、Rerank 重排，最后基于检索结果生成答案。两个链路都用 LangGraph 编排，中间靠向量库衔接。」</span></div>
+  </div></div>
+
+  <div class="concept"><h3>概念 C · 技术栈选型（每个组件解决什么问题）</h3><div class="c-body">
+    <div class="elem"><span class="k">一句话结论</span><span class="v">LangGraph 编排流程、Milvus 存向量、MinIO 存文件、MongoDB 存历史、FastAPI+SSE 做实时输出 —— 每个组件都有不可替代的职责。 <span class="badge b-proj">[项目事实]</span></span></div>
+    <div class="elem"><span class="k">大白话</span><span class="v">想象一条流水线：LangGraph 是「流水线总控」；Milvus 是「按指纹找资料的仓库」；MinIO 是「放原始图片的网盘」；MongoDB 是「记录每次对话的账本」；SSE 是「让前端像看直播一样看到答案逐字出现」的通道。</span></div>
+    <div class="elem"><span class="k">前端类比</span><span class="v"><table><tr><th>组件</th><th>前端类比</th><th>职责</th></tr><tr><td>LangGraph</td><td>路由 + 状态管理 + 中间件</td><td>编排节点、传递状态、条件分支</td></tr><tr><td>Milvus</td><td>带索引的数据库</td><td>向量近似检索（TopK）</td></tr><tr><td>MinIO</td><td>CDN / 对象存储</td><td>存 PDF 转出的图片，供前端展示</td></tr><tr><td>MongoDB</td><td>localStorage / 后端 DB</td><td>历史对话、消息、item_names</td></tr><tr><td>FastAPI+SSE</td><td>EventSource / WebSocket 推送</td><td>流式输出答案增量</td></tr><tr><td>uv</td><td>pnpm / npm</td><td>Python 依赖与虚拟环境管理</td></tr></table></span></div>
+    <div class="elem"><span class="k">项目代码</span><span class="v">配置类集中在 <span class="path">app/conf/</span>：milvus_config.py、minio_config.py、reranker_config.py、lm_config.py、mineru_config.py、embedding_config.py、bailian_mcp_config.py。</span></div>
+    <div class="elem"><span class="k">最小代码</span><span class="v"><pre><code># reranker_config.py：环境变量 → 配置对象（dataclass）
+@dataclass
+class RerankerConfig:
+    bge_reranker_large: str
+    bge_reranker_device: str
+    bge_reranker_fp16: bool
+
+reranker_config = RerankerConfig(
+    bge_reranker_large=os.getenv("BGE_RERANKER_LARGE"),
+    bge_reranker_device=os.getenv("BGE_RERANKER_DEVICE"),
+    bge_reranker_fp16=os.getenv("BGE_RERANKER_FP16") in ("1", "True", "true", 1))</code></pre>为什么这样写：所有外部依赖的地址/路径集中从 .env 读取，换环境（开发/生产）只改配置不改代码。</span></div>
+    <div class="elem"><span class="k">反例</span><span class="v">如果不用向量数据库而用普通数据库：无法做「语义相似度」检索，只能精确匹配关键词，「万用表怎么用」和「如何操作万用表」就匹配不上了。</span></div>
+    <div class="elem"><span class="k">并发场景</span><span class="v">同时 10 个请求流式生成：SSE 按 session_id 分通道推送（push_to_session），每个前端连接只收到自己会话的增量，不会串台。</span></div>
+    <div class="elem"><span class="k">边界</span><span class="v">技术栈不是越全越好：小规模场景 SQLite + 关键词搜索也能做 RAG；这里选 Milvus/SSE 是因为目标是对接前端实时问答、支持并发和企业级数据量。</span></div>
+    <div class="elem"><span class="k">验证方法</span><span class="v">看 <span class="path">pyproject.toml</span> 与 <span class="path">uv.lock</span> 中的依赖清单，对照上述组件逐一找到。</span></div>
+    <div class="elem"><span class="k">30 秒面试</span><span class="v">「技术栈选型按职责分工：LangGraph 做流程编排和状态管理；BGE-M3 做稠密+稀疏双路向量；Milvus 做向量检索；MinIO 存图片文件；MongoDB 存对话历史；FastAPI + SSE 给前端做流式输出。选型原则是每个组件解决一个明确问题，且都是各自领域的主流方案。」</span></div>
+  </div></div>
+</section>
+
+<section id="tasks">
+  <h2>4. 课后提取和动手任务</h2>
+  <div class="task-box"><h3>闭卷回答（先自己答，再看课件）</h3>
+    <ol>
+      <li>RAG 与直接问大模型的核心区别是什么？</li>
+      <li>导入链路和检索链路各自解决什么问题？中间靠什么连接？</li>
+      <li>Milvus、MinIO、MongoDB 各存什么数据？</li>
+      <li>LangGraph 的「虚拟节点」在检索主图里起什么作用？</li>
+    </ol>
+  </div>
+  <div class="task-box"><h3>动手任务：画出并核对双链路</h3>
+    <ul>
+      <li><b>输入</b>：项目根目录 <span class="path">app/import_process/agent/main_graph.py</span> 与 <span class="path">app/query_process/agent/main_graph.py</span></li>
+      <li><b>操作</b>：① 数出导入链路业务节点数量（应为 7）；② 数出检索链路节点数量（应为 8，含 2 个虚拟节点）；③ 找出检索链路里「条件路由」函数名（应为 route_after_item_confirm）</li>
+      <li><b>预期结果</b>：能不看课件，在纸上画出两条链路的完整节点顺序</li>
+      <li><b>失败先查</b>：如果节点数量对不上，检查是否把虚拟节点（lambda x: x / lambda x: {}）漏数了</li>
+    </ul>
+  </div>
+  <div class="task-box"><h3>口述复盘（30 秒练习）</h3>
+    <p style="font-size:14px">对着镜子说：项目做什么 → 两条链路 → 技术栈 → 为什么这么选。卡壳的地方记下来，明天再讲一遍。</p>
+  </div>
+</section>
+
+<section id="pass">
+  <h2>5. 通过标准</h2>
+  <div class="pass">
+    <ul>
+      <li>quiz 正确率 ≥ 80%（错题记入错题本，含题目 ID、错误原因、正确原理）</li>
+      <li>能不看课件画出导入 7 节点 + 检索 8 节点</li>
+      <li>能在代码中定位两个 main_graph.py 和两个 state.py</li>
+      <li>30 秒讲清「项目是做什么的」</li>
+      <li>能说出至少一个 RAG 的失败边界（如：知识库里没有的资料答不好）</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">素材来源：1.笔记/ 01 项目简介 · 02 模块流程设计 · 03 环境准备 · 04 导入数据图 · 07 检索数据图；代码路径已在项目根目录核实。标签：[项目事实][通用知识][面试简化][待验证]。</footer>
+
+</div>
+<script>
+const quizData=[
+{no:1,q:"RAG 的核心思想是？",opts:["让大模型记住更多训练数据","先检索相关资料，再让大模型基于资料生成答案","用多个大模型投票选出答案","把答案缓存起来加速访问"],ans:1,exp:"RAG = Retrieval-Augmented Generation，先检索再生成。选 A 是把问题推给训练数据，正是 RAG 想避免的。"},
+{no:2,q:"掌柜智库的导入链路中，文档切分后下一个节点是？",opts:["node_md_img（图片处理）","node_item_name_recognition（主体识别）","node_bge_embedding（向量化）","node_import_milvus（入库）"],ans:1,exp:"导入链路顺序：entry → pdf_to_md → md_img → document_split → item_name_recognition → bge_embedding → import_milvus。切分后的下一节点是主体识别。"},
+{no:3,q:"Milvus 在项目中的职责是？",opts:["存储 PDF 原文","存储对话历史","存储向量并支持近似检索","做任务调度"],ans:2,exp:"Milvus 是向量数据库，存稠密/稀疏向量并做 TopK 近似检索。PDF 原文在本地/MinIO，历史在 MongoDB。"},
+{no:4,q:"检索主图中 node_multi_search 的作用是？",opts:["真正执行向量检索","作为分叉点，让四路搜索并行","合并四路搜索结果","做 RRF 融合排序"],ans:1,exp:"node_multi_search 是虚拟节点（lambda x:x），无业务逻辑，只作为分叉点。真正检索的是 embedding/hyde/web/kg 四路节点。"},
+{no:5,q:"MongoDB 在项目里主要存什么？",opts:["向量数据","用户上传的图片","对话历史与消息记录","LLM 配置"],ans:2,exp:"MongoDB 存历史对话、消息（role/text）、item_names 等元数据（如 mongo_history_utils 的 save_chat_message）。"},
+{no:6,q:"为什么 RAG 能减少大模型幻觉？",opts:["大模型被训练得更好","答案被限定在检索到的参考资料范围内","答案经过人工审核","系统用了更大的模型"],ans:1,exp:"Prompt 里给出参考内容并要求『不要编造不存在的事实』，模型只能在给定上下文中作答，可溯源。"},
+{no:7,q:"SSE（Server-Sent Events）在项目中的用途是？",opts:["上传大文件","前端与后端双向实时通信","后端单向推送答案增量，实现流式输出","替代 HTTP 请求"],ans:2,exp:"SSE 是单向服务端推送，配合 EventSource 实现答案逐字输出。WebSocket 才是双向；这里场景是『推送答案』，SSE 足够且更简单。"},
+{no:8,q:"『导入链路像构建期、检索链路像运行期』这个类比中，中间连接二者的『数据库』是？",opts:["MongoDB","MinIO","Milvus","Redis"],ans:2,exp:"导入把向量写进 Milvus，检索从 Milvus 召回，Milvus 是双链路的衔接点。MongoDB 存历史、MinIO 存图片。"}
+];
+const box=document.getElementById('quizBox');
+quizData.forEach(item=>{
+  const d=document.createElement('div');d.className='quiz';
+  let html=`<div class="q"><span class="no">Q${item.no}</span>${item.q}</div>`;
+  item.opts.forEach((o,i)=>{
+    html+=`<button class="opt" data-i="${i}"><span class="letter">${String.fromCharCode(65+i)}</span>${o}</button>`;
+  });
+  html+=`<div class="explain"><strong>解析：</strong>${item.exp}</div>`;
+  d.innerHTML=html;
+  d.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i=+btn.dataset.i;
+      const correct=i===item.ans;
+      d.querySelectorAll('.opt').forEach(b=>{b.disabled=true;b.classList.remove('correct','wrong');});
+      d.querySelectorAll('.opt')[item.ans].classList.add('correct');
+      if(!correct)btn.classList.add('wrong');
+      d.querySelector('.explain').classList.add('show');
+    });
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>
