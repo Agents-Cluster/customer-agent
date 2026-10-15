@@ -1,9 +1,10 @@
 # 项目启动命令
 
+> 以下命令均假设在项目根目录下执行。
+
 ## 1. 启动 Docker 中间件（Milvus / MongoDB / Neo4j）
 
 ```bash
-cd /Users/lemon/Downloads/PythonProject16
 docker compose up -d
 ```
 
@@ -15,7 +16,6 @@ docker compose up -d
 ## 2. 启动 S3 兼容服务（MinIO 替代，用 moto）
 
 ```bash
-cd /Users/lemon/Downloads/PythonProject16
 .venv/bin/moto_server -p 9000 &
 ```
 
@@ -32,7 +32,6 @@ print('bucket created')
 ## 3. 启动导入服务（8000 端口，PDF 上传 → 向量入库）
 
 ```bash
-cd /Users/lemon/Downloads/PythonProject16
 env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u ALL_PROXY -u all_proxy \
   .venv/bin/python -m app.import_process.api.file_import_service
 ```
@@ -44,7 +43,6 @@ env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u ALL_PROXY -u al
 ## 4. 启动查询服务（8001 端口，RAG 问答）
 
 ```bash
-cd /Users/lemon/Downloads/PythonProject16
 env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy -u ALL_PROXY -u all_proxy \
   .venv/bin/python -m app.query_process.api.query_service
 ```
